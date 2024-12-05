@@ -27,6 +27,12 @@ table.list.reports th a {
     color: #0073aa;
 }
 table.list.reports th a.asc::after {
+    content: ' 🔼'; /* Указывает на сортировку по возрастанию */
+}
+table.list.reports th a.desc::after {
+    content: ' 🔽'; /* Указывает на сортировку по убыванию */
+}
+table.list.reports th a.asc::after {
     content: ' 🔼';
 }
 table.list.reports th a.desc::after {

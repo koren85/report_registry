@@ -1,4 +1,7 @@
 # plugins/report_registry/init.rb
+
+require_dependency 'reports_hook_listener'
+
 Redmine::Plugin.register :report_registry do
   name 'Report Registry Plugin'
   author 'Your Name'
@@ -14,4 +17,7 @@ Redmine::Plugin.register :report_registry do
        after: :projects,       # указываем позицию после "Проекты"
        if: Proc.new { User.current.logged? }, # только для авторизованных пользователей
        html: { class: 'icon icon-reports' }   # класс для иконки
+
+
+
 end
