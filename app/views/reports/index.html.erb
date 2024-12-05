@@ -1,39 +1,44 @@
-<!-- plugins/report_registry/app/views/reports/index.html.erb -->
 <h2><%= l(:menu_reports) %></h2>
 
-<table class="list reports">
-  <thead>
-  <tr>
-    <th><%= sortable('id', l(:'reports.table.id')) %></th>
-    <th><%= sortable('name', l(:'reports.table.name')) %></th>
-    <th><%= sortable('period', l(:'reports.table.period')) %></th>
-    <th><%= sortable('start_date', l(:'reports.table.start_date')) %></th>
-    <th><%= sortable('end_date', l(:'reports.table.end_date')) %></th>
-    <th><%= sortable('status', l(:'reports.table.status')) %></th>
-    <th><%= sortable('created_at', l(:'reports.table.created_at')) %></th>
-    <th><%= sortable('created_by', l(:'reports.table.created_by')) %></th>
-    <th><%= sortable('updated_at', l(:'reports.table.updated_at')) %></th>
-    <th><%= sortable('updated_by', l(:'reports.table.updated_by')) %></th>
-    <th><%= sortable('total_hours', l(:'reports.table.total_hours')) %></th>
-    <th><%= sortable('contract_number', l(:'reports.table.contract_number')) %></th>
-  </tr>
-  </thead>
-  <tbody>
-  <% @reports.each do |report| %>
-    <tr class="<%= cycle('odd', 'even') %>">
-      <td><%= report.id %></td>
-      <td><%= report.name %></td>
-      <td><%= report.period %></td>
-      <td><%= report.start_date %></td>
-      <td><%= report.end_date %></td>
-      <td class="status <%= report.status %>"><%= report.status %></td>
-      <td><%= report.created_at %></td>
-      <td><%= User.find_by(id: report.created_by)&.name %></td>
-      <td><%= report.updated_at %></td>
-      <td><%= User.find_by(id: report.updated_by)&.name %></td>
-      <td><%= report.total_hours %></td>
-      <td><%= report.contract_number %></td>
+<% if @items.any? %>
+  <table class="list reports">
+    <thead>
+    <tr>
+      <th><%= sort_header_tag('id', caption: l(:'reports.table.id')) %></th>
+      <th><%= sort_header_tag('name', caption: l(:'reports.table.name')) %></th>
+      <th><%= sort_header_tag('period', caption: l(:'reports.table.period')) %></th>
+      <th><%= sort_header_tag('start_date', caption: l(:'reports.table.start_date')) %></th>
+      <th><%= sort_header_tag('end_date', caption: l(:'reports.table.end_date')) %></th>
+      <th><%= sort_header_tag('status', caption: l(:'reports.table.status')) %></th>
+      <th><%= sort_header_tag('created_at', caption: l(:'reports.table.created_at')) %></th>
+      <th><%= sort_header_tag('created_by', caption: l(:'reports.table.created_by')) %></th>
+      <th><%= sort_header_tag('updated_at', caption: l(:'reports.table.updated_at')) %></th>
+      <th><%= sort_header_tag('updated_by', caption: l(:'reports.table.updated_by')) %></th>
+      <th><%= sort_header_tag('total_hours', caption: l(:'reports.table.total_hours')) %></th>
+      <th><%= sort_header_tag('contract_number', caption: l(:'reports.table.contract_number')) %></th>
     </tr>
-  <% end %>
-  </tbody>
-</table>
+    </thead>
+    <tbody>
+    <% @items.each do |item| %>
+      <tr class="<%= cycle('odd', 'even') %>">
+        <td><%= item.id %></td>
+        <td><%= item.name %></td>
+        <td><%= item.period %></td>
+        <td><%= item.start_date %></td>
+        <td><%= item.end_date %></td>
+        <td class="status <%= item.status %>"><%= item.status %></td>
+        <td><%= format_time(item.created_at) %></td>
+        <td><%= User.find_by(id: item.created_by)&.name %></td>
+        <td><%= format_time(item.updated_at) %></td>
+        <td><%= User.find_by(id: item.updated_by)&.name %></td>
+        <td><%= item.total_hours %></td>
+        <td><%= item.contract_number %></td>
+      </tr>
+    <% end %>
+    </tbody>
+  </table>
+
+  <span class="pagination"><%= pagination_links_full @item_pages, @item_count %></span>
+<% else %>
+  <p class="nodata"><%= l(:label_no_data) %></p>
+<% end %>

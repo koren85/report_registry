@@ -1,4 +1,5 @@
 # plugins/report_registry/init.rb
+require File.expand_path('../app/helpers/reports_helper', __FILE__)
 
 require_dependency 'reports_hook_listener'
 
