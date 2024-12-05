@@ -1,0 +1,75 @@
+<%= form_with(model: @report, local: true) do |f| %>
+  <fieldset>
+    <legend><%= l(:label_report_details) %></legend>
+
+    <!-- Поле названия отчёта -->
+    <p>
+      <%= f.label :name, l(:field_name) %><br>
+      <%= f.text_field :name, required: true, maxlength: 254, style: 'width: 40%;' %>
+    </p>
+
+    <!-- Поле выбора проекта -->
+    <% unless @project %>
+      <p>
+        <%= f.label :project_id, l(:field_project) %><br>
+        <%= f.collection_select :project_id,
+                                @projects_with_module,
+                                :id, :name,
+                                { include_blank: true },
+                                class: 'select2' %>
+      </p>
+    <% else %>
+      <%= f.hidden_field :project_id, value: @project.id %>
+    <% end %>
+
+    <!-- Поле выбора версии (если проект выбран) -->
+    <% if @project || @report.project_id.present? %>
+      <p>
+        <%= f.label :version_id, l(:field_version) %><br>
+        <%= f.collection_select :version_id,
+                                @versions || [],
+                                :id, :name,
+                                { include_blank: true },
+                                class: 'select2' %>
+      </p>
+    <% end %>
+
+    <!-- Поле выбора периода -->
+    <p>
+      <%= f.label :period, l(:field_period) %><br>
+      <%= f.select :period, [['Месячный', 'месячный'], ['Квартальный', 'квартальный'], ['Годовой', 'годовой'], ['Прочее', 'прочее']] %>
+    </p>
+
+    <!-- Поле выбора даты начала -->
+    <p>
+      <%= f.label :start_date, l(:field_start_date) %><br>
+      <%= f.date_field :start_date %>
+    </p>
+
+    <!-- Поле выбора даты окончания -->
+    <p>
+      <%= f.label :end_date, l(:field_end_date) %><br>
+      <%= f.date_field :end_date %>
+    </p>
+
+    <!-- Поле номера контракта -->
+    <p>
+      <%= f.label :contract_number, l(:field_contract_number) %><br>
+      <%= f.text_field :contract_number %>
+    </p>
+
+    <!-- Поле выбора задач -->
+    <% if @project || @report.project_id.present? %>
+      <p>
+        <%= f.label :issue_ids, l(:field_issues) %><br>
+        <%= f.collection_select :issue_ids,
+                                Issue.where(project_id: @project&.id || @report.project_id),
+                                :id, :subject,
+                                { include_blank: false },
+                                { multiple: true, class: 'select2' } %>
+      </p>
+    <% end %>
+  </fieldset>
+
+  <%= f.submit l(:button_save), class: 'icon icon-save' %>
+<% end %>

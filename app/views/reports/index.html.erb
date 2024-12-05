@@ -1,4 +1,12 @@
-<h2><%= l(:menu_reports) %></h2>
+<h2>
+  <%= @project ? "#{l(:menu_reports)}: #{@project.name}" : l(:menu_reports_all) %>
+</h2>
+
+<div class="contextual">
+  <%= link_to l(:button_new_report),
+              @project ? new_project_report_path(@project) : new_report_path,
+              class: 'icon icon-add' %>
+</div>
 
 <% if @items.any? %>
   <table class="list reports">
@@ -6,6 +14,9 @@
     <tr>
       <th><%= sort_header_tag('id', caption: l(:'reports.table.id')) %></th>
       <th><%= sort_header_tag('name', caption: l(:'reports.table.name')) %></th>
+      <% unless @project %>
+        <th><%= sort_header_tag('project_id', caption: l(:'reports.table.project')) %></th>
+      <% end %>
       <th><%= sort_header_tag('period', caption: l(:'reports.table.period')) %></th>
       <th><%= sort_header_tag('start_date', caption: l(:'reports.table.start_date')) %></th>
       <th><%= sort_header_tag('end_date', caption: l(:'reports.table.end_date')) %></th>
@@ -19,20 +30,38 @@
     </tr>
     </thead>
     <tbody>
-    <% @items.each do |item| %>
+    <% @items.each do |report| %>
       <tr class="<%= cycle('odd', 'even') %>">
-        <td><%= item.id %></td>
-        <td><%= item.name %></td>
-        <td><%= item.period %></td>
-        <td><%= item.start_date %></td>
-        <td><%= item.end_date %></td>
-        <td class="status <%= item.status %>"><%= item.status %></td>
-        <td><%= format_time(item.created_at) %></td>
-        <td><%= User.find_by(id: item.created_by)&.name %></td>
-        <td><%= format_time(item.updated_at) %></td>
-        <td><%= User.find_by(id: item.updated_by)&.name %></td>
-        <td><%= item.total_hours %></td>
-        <td><%= item.contract_number %></td>
+        <td><%= report.id %></td>
+        <td><%= report.name %></td>
+        <% unless @project %>
+          <td><%= link_to report.project.name, project_reports_path(report.project) if report.project %></td>
+        <% end %>
+        <td><%= report.period %></td>
+        <td><%= report.start_date %></td>
+        <td><%= report.end_date %></td>
+        <td class="status <%= report.status %>"><%= report.status %></td>
+        <td><%= format_time(report.created_at) %></td>
+        <td><%= User.find_by(id: report.created_by)&.name %></td>
+        <td><%= format_time(report.updated_at) %></td>
+        <td><%= User.find_by(id: report.updated_by)&.name %></td>
+        <td><%= report.total_hours %></td>
+        <td><%= report.contract_number %></td>
+        <td>
+          <% if @project %>
+            <%= link_to l(:button_edit), edit_project_report_path(@project, report), class: 'icon icon-edit' %>
+            <%= link_to l(:button_delete), project_report_path(@project, report), method: :delete, data: { confirm: l(:text_are_you_sure) }, class: 'icon icon-del' %>
+            <% if report.status != 'утвержден' %>
+              <%= link_to l(:button_approve), approve_project_report_path(@project, report), method: :patch, class: 'icon icon-approve' %>
+            <% end %>
+          <% else %>
+            <%= link_to l(:button_edit), edit_report_path(report), class: 'icon icon-edit' %>
+            <%= link_to l(:button_delete), report_path(report), method: :delete, data: { confirm: l(:text_are_you_sure) }, class: 'icon icon-del' %>
+            <% if report.status != 'утвержден' %>
+              <%= link_to l(:button_approve), approve_report_path(report), method: :patch, class: 'icon icon-approve' %>
+            <% end %>
+          <% end %>
+        </td>
       </tr>
     <% end %>
     </tbody>

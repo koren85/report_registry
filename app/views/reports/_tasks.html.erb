@@ -1,0 +1,23 @@
+<!-- plugins/report_registry/app/views/reports/_tasks.html.erb -->
+<h3><%= l(:label_tasks) %></h3>
+
+<% if @report.issues.any? %>
+  <table>
+    <thead>
+    <tr>
+      <th><%= l(:field_task_id) %></th>
+      <th><%= l(:field_task_subject) %></th>
+    </tr>
+    </thead>
+    <tbody>
+    <% @report.issues.each do |issue| %>
+      <tr>
+        <td><%= issue.id %></td>
+        <td><%= issue.subject %></td>
+      </tr>
+    <% end %>
+    </tbody>
+  </table>
+<% else %>
+  <p><%= l(:label_no_tasks) %></p>
+<% end %>

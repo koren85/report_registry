@@ -1,0 +1,5 @@
+<!-- plugins/report_registry/app/views/settings/_report_registry_settings.html.erb -->
+<p><%= l(:field_enabled_projects) %></p>
+<%= select_tag 'settings[enabled_projects][]',
+               options_from_collection_for_select(Project.all, :id, :name, Setting.plugin_report_registry['enabled_projects']),
+               multiple: true %>

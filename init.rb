@@ -10,15 +10,29 @@ Redmine::Plugin.register :report_registry do
   version '0.1.0'
   requires_redmine version_or_higher: '4.0'
 
+
+
   # Добавление пункта в главное меню (top_menu)
-  menu :top_menu,
-       :report_registry,
+  menu :top_menu, :global_reports,
        { controller: 'reports', action: 'index' },
-       caption: :menu_reports, # используем символ для перевода
-       after: :projects,       # указываем позицию после "Проекты"
-       if: Proc.new { User.current.logged? }, # только для авторизованных пользователей
-       html: { class: 'icon icon-reports' }   # класс для иконки
+       caption: 'Все отчёты',
+       if: Proc.new { User.current.allowed_to_globally?(:view_reports_global) },
+       html: { class: 'icon icon-reports' }
 
+  # Регистрация модуля в настройках проекта
+  project_module :report_registry do
+    permission :view_reports, { reports: [:index, :show] }
+    permission :manage_reports, { reports: [:new, :create, :edit, :update, :destroy, :approve] }
+    permission :view_reports_global, { reports: [:index] }, global: true
+    permission :manage_reports_global, { reports: [:new, :create] }, global: true
 
+  end
+
+  # Добавление пункта меню в проекты с включенным модулем
+  menu :project_menu, :report_registry,
+       { controller: 'reports', action: 'index' },
+       caption: 'Отчеты',
+       param: :project_id,
+       if: Proc.new { |project| project.module_enabled?(:report_registry) }
 
 end
