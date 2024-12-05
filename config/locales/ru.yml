@@ -1,0 +1,18 @@
+# plugins/report_registry/config/locales/ru.yml
+ru:
+  reports:
+    table:
+      id: 'ID'
+      name: 'Название отчета'
+      period: 'Период'
+      start_date: 'Дата начала'
+      end_date: 'Дата окончания'
+      status: 'Статус'
+      created_at: 'Дата создания'
+      created_by: 'Создал'
+      updated_at: 'Последнее обновление'
+      updated_by: 'Обновил'
+      total_hours: 'Общее количество часов'
+      contract_number: 'Номер контракта'
+
+  menu_reports: 'Отчет'

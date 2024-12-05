@@ -1,0 +1,34 @@
+/* plugins/report_registry/assets/stylesheets/report_registry.css */
+table.list.reports {
+    width: 100%;
+    border-collapse: collapse;
+}
+table.list.reports tr.odd {
+    background-color: #f9f9f9;
+}
+table.list.reports tr:hover {
+    background-color: #eaeaea;
+}
+table.list.reports .status.черновик {
+    color: gray;
+}
+table.list.reports .status.в_работе {
+    color: blue;
+}
+table.list.reports .status.сформирован {
+    color: orange;
+}
+table.list.reports .status.утвержден {
+    color: green;
+}
+/* plugins/report_registry/assets/stylesheets/report_registry.css */
+table.list.reports th a {
+    text-decoration: none;
+    color: #0073aa;
+}
+table.list.reports th a.asc::after {
+    content: ' 🔼';
+}
+table.list.reports th a.desc::after {
+    content: ' 🔽';
+}
