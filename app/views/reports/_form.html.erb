@@ -1,4 +1,5 @@
-<%= form_with(model: @report, local: true) do |f| %>
+<%= form_with(model: [@project, @report], local: true, id: 'report-form') do |f| %>
+  <%= hidden_field_tag :from_global, @from_global %>
   <fieldset>
     <legend><%= l(:label_report_details) %></legend>
 
@@ -16,23 +17,21 @@
                                 @projects_with_module,
                                 :id, :name,
                                 { include_blank: true },
-                                class: 'select2' %>
+                                class: 'select2', id: 'project-select' %>
       </p>
     <% else %>
       <%= f.hidden_field :project_id, value: @project.id %>
     <% end %>
 
-    <!-- Поле выбора версии (если проект выбран) -->
-    <% if @project || @report.project_id.present? %>
-      <p>
-        <%= f.label :version_id, l(:field_version) %><br>
-        <%= f.collection_select :version_id,
-                                @versions || [],
-                                :id, :name,
-                                { include_blank: true },
-                                class: 'select2' %>
-      </p>
-    <% end %>
+    <!-- Поле выбора версии -->
+    <p>
+      <%= f.label :version_id, l(:field_version) %><br>
+      <%= f.collection_select :version_id,
+                              @versions || [],
+                              :id, :name,
+                              { include_blank: true },
+                              class: 'select2', id: 'version-select' %>
+    </p>
 
     <!-- Поле выбора периода -->
     <p>
@@ -59,16 +58,14 @@
     </p>
 
     <!-- Поле выбора задач -->
-    <% if @project || @report.project_id.present? %>
-      <p>
-        <%= f.label :issue_ids, l(:field_issues) %><br>
-        <%= f.collection_select :issue_ids,
-                                Issue.where(project_id: @project&.id || @report.project_id),
-                                :id, :subject,
-                                { include_blank: false },
-                                { multiple: true, class: 'select2' } %>
-      </p>
-    <% end %>
+    <p>
+      <%= f.label :issue_ids, l(:field_issues) %><br>
+      <%= f.collection_select :issue_ids,
+                              @issues || [],
+                              :id, :subject,
+                              { include_blank: false },
+                              { multiple: true, class: 'select2', id: 'issues-select' } %>
+    </p>
   </fieldset>
 
   <%= f.submit l(:button_save), class: 'icon icon-save' %>

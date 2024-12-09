@@ -2,7 +2,7 @@
 ru:
   reports:
     table:
-      id: 'ID'
+      id: 'Номер'
       name: 'Название отчета'
       period: 'Период'
       start_date: 'Дата начала'

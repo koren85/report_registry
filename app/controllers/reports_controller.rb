@@ -2,30 +2,44 @@ class ReportsController < ApplicationController
   helper :sort
   include SortHelper
   before_action :require_login
-  before_action :find_report, only: [:edit, :update, :destroy, :approve]
-  before_action :ensure_project_module_enabled, only: [:new, :create]
+  before_action :find_report, only: [:edit, :update, :destroy, :approve, :show]
+  before_action :find_project
+  before_action :ensure_project_module_enabled, if: -> { @project.present? }
 
-  before_action :find_project, only: [:index, :new, :create, :edit, :update, :destroy]
-  before_action :authorize_global, only: [:index], if: -> { @project.nil? }
-  before_action :authorize, except: [:index]
+  # Сначала проверяем админа
+  before_action :skip_authorization_for_admin, if: -> { User.current.admin? }
 
+  # Потом остальные проверки для не-админов
+  before_action :authorize_global, only: [:index], if: -> { !User.current.admin? && @project.nil? }
+  before_action :authorize, if: -> { !User.current.admin? && @project.present? }
 
   def index
-    @items = if @project
-               @project.reports.order(created_at: :desc)
-             else
-               Report.includes(:project).order(created_at: :desc)
-             end
+    sort_init 'created_at', 'desc'
+    sort_update %w(id name period status created_at updated_at created_by updated_by project_id)
+
+    scope = @project ? @project.reports : Report.includes(:project)
+    scope = scope.order(sort_clause)
+
+    @limit = per_page_option
+    @item_count = scope.count
+    @item_pages = Paginator.new @item_count, @limit, params['page']
+    @items = scope.offset(@item_pages.offset).limit(@item_pages.per_page)
+
+    @periods = Report.distinct.pluck(:period)
+    @statuses = %w[черновик в_работе сформирован утвержден]
+    @users = User.all
   end
 
-
   def new
-    @report = if @project
-                @project.reports.new
-              else
-                Report.new
-              end
-    load_versions
+    if @project
+      @report = @project.reports.new
+      load_versions
+      authorize
+    else
+      @report = Report.new
+      @projects_with_module = Project.active.has_module(:report_registry)
+      authorize_global
+    end
   end
 
   def create
@@ -46,14 +60,33 @@ class ReportsController < ApplicationController
   end
 
   def edit
-    load_project_and_versions
+    @from_global = params[:from_global]
+    @issues = if @project
+                @project.issues
+              elsif @report.project
+                @report.project.issues
+              else
+                []
+              end
+    @versions = @report.project&.versions&.where.not(status: 'closed') || []
+    @projects_with_module = Project.active.has_module(:report_registry) unless @project
   end
 
+
   def update
-    if @report.update(report_params)
-      redirect_to project_reports_path(@report.project), notice: 'Отчет успешно обновлен'
+    @report.assign_attributes(report_params)
+    @report.updated_by = User.current.id  # Добавляем текущего пользователя как обновившего
+
+    if @report.save
+      flash[:notice] = l(:notice_successful_update)
+      if params[:from_global] == 'true'
+        redirect_to reports_path
+      else
+        redirect_to project_reports_path(@report.project)
+      end
     else
       load_project_and_versions
+      @from_global = params[:from_global]
       render :edit
     end
   end
@@ -75,19 +108,23 @@ class ReportsController < ApplicationController
 
   private
 
-
-
   def report_params
     params.require(:report).permit(:name, :period, :start_date, :end_date, :status, :total_hours,
                                    :contract_number, :project_id, :version_id, issue_ids: [])
   end
 
+  def find_report
+    @report = Report.find(params[:id])
+  rescue ActiveRecord::RecordNotFound
+    render_404
+  end
 
   def find_project
-    if params[:project_id]
-      @project = Project.find_by(id: params[:project_id])
-      render_404 unless @project
-    end
+    @project = if params[:project_id]
+                 Project.find(params[:project_id])
+               elsif @report&.project
+                 @report.project
+               end
   end
 
   def load_versions
@@ -95,25 +132,34 @@ class ReportsController < ApplicationController
     @projects_with_module = Project.active.has_module(:report_registry) unless @project
   end
 
-def ensure_project_module_enabled
-  unless @project&.module_enabled?(:report_registry)
-    render_403
+  def ensure_project_module_enabled
+    return true if User.current.admin? # Администратор игнорирует проверку
+    unless @project&.module_enabled?(:report_registry)
+      render_403
+    end
   end
-end
 
   def authorize_global
-    # Проверяем глобальное право просмотра отчётов
-    allowed = User.current.allowed_to_globally?(:view_reports)
+    # Проверка глобального права
+    allowed = User.current.allowed_to_globally?(:manage_reports_global)
     render_403 unless allowed
   end
 
-def load_project_and_versions
-  @projects_with_module = Project.active.has_module(:report_registry)
-  if @report.project
-    @versions = @report.project.versions.where.not(status: 'closed')
-  else
-    @versions = []
+  def load_project_and_versions
+    @projects_with_module = Project.active.has_module(:report_registry)
+    if @report.project
+      @versions = @report.project.versions.where.not(status: 'closed')
+    else
+      @versions = []
+    end
   end
-end
 
+  def authorize_unless_admin
+    return true if User.current.admin? # Администраторы получают полный доступ
+    authorize
+  end
+
+  def skip_authorization_for_admin
+    true # Просто пропускаем все проверки для админа
+  end
 end

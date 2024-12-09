@@ -1,10 +1,14 @@
 RedmineApp::Application.routes.draw do
-  # Глобальная страница отчётов с возможностью создания
-  resources :reports, only: [:index, :new, :create]
+  # Глобальные маршруты
+  resources :reports do
+    member do
+      patch :approve
+    end
+  end
 
-  # Страница отчётов для конкретного проекта
-  scope 'projects/:project_id' do
-    resources :reports, only: [:index, :new, :create, :edit, :update, :destroy] do
+  # Маршруты в контексте проекта
+  resources :projects do
+    resources :reports do
       member do
         patch :approve
       end

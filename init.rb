@@ -1,5 +1,7 @@
 # plugins/report_registry/init.rb
 require File.expand_path('../app/helpers/reports_helper', __FILE__)
+require File.expand_path('../lib/reports_hook_listener', __FILE__)
+require File.expand_path('../lib/project_patch', __FILE__)
 
 require_dependency 'reports_hook_listener'
 
@@ -25,7 +27,6 @@ Redmine::Plugin.register :report_registry do
     permission :manage_reports, { reports: [:new, :create, :edit, :update, :destroy, :approve] }
     permission :view_reports_global, { reports: [:index] }, global: true
     permission :manage_reports_global, { reports: [:new, :create] }, global: true
-
   end
 
   # Добавление пункта меню в проекты с включенным модулем
