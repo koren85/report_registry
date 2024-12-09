@@ -1,6 +1,32 @@
 $(document).ready(function() {
     var projectSelect = $('#project-select');
     var versionSelect = $('#version-select');
+    var periodSelect = $('#report_period');
+    var contractInput = $('#report_contract_number');
+    var nameInput = $('#report_name');
+    var userEditedName = false;
+
+    // Отслеживаем ручное редактирование названия
+    nameInput.on('input', function() {
+        userEditedName = true;
+    });
+
+    function updateReportName() {
+        // Если пользователь уже редактировал название, не обновляем его
+        if (userEditedName) return;
+
+        var projectName = projectSelect.find('option:selected').text() || '';
+        var versionName = versionSelect.find('option:selected').text() || '';
+        var period = periodSelect.val() || '';
+        var contract = contractInput.val() || '';
+
+        // Формируем название только если есть хотя бы один компонент
+        if (projectName || versionName || period || contract) {
+            var components = [projectName, versionName, period, contract].filter(Boolean);
+            var newName = components.join(' - ');
+            nameInput.val(newName);
+        }
+    }
 
     function initializeSelect2() {
         if ($.fn.select2) {
@@ -19,19 +45,13 @@ $(document).ready(function() {
                 method: 'GET',
                 dataType: 'json'
             }).done(function(versions) {
-                // Сохраняем текущее значение
                 var currentValue = versionSelect.val();
-
-                // Очищаем select
                 versionSelect.empty();
-
-                // Добавляем пустую опцию
                 versionSelect.append($('<option>', {
                     value: '',
                     text: ''
                 }));
 
-                // Добавляем версии
                 versions.forEach(function(version) {
                     versionSelect.append($('<option>', {
                         value: version.id,
@@ -39,18 +59,18 @@ $(document).ready(function() {
                     }));
                 });
 
-                // Восстанавливаем значение если оно есть в новом списке
                 if (currentValue && versions.some(v => v.id.toString() === currentValue.toString())) {
                     versionSelect.val(currentValue);
                 }
 
-                // Включаем select
                 versionSelect.prop('disabled', false);
 
-                // Обновляем select2 если он используется
                 if ($.fn.select2) {
                     versionSelect.trigger('change.select2');
                 }
+
+                // Обновляем название после загрузки версий
+                updateReportName();
             }).fail(function() {
                 console.error('Failed to load versions');
                 versionSelect.empty().prop('disabled', true);
@@ -63,17 +83,35 @@ $(document).ready(function() {
         }
     }
 
-    // Инициализируем select2
+    // Инициализация
     initializeSelect2();
 
-    // Привязываем обработчик изменения проекта
+    // Привязываем обработчики изменений
     projectSelect.on('change', function() {
         updateVersions($(this).val());
+        updateReportName();
     });
 
-    // Если проект уже выбран при загрузке страницы, загружаем его версии
+    versionSelect.on('change', function() {
+        updateReportName();
+    });
+
+    periodSelect.on('change', function() {
+        updateReportName();
+    });
+
+    contractInput.on('input', function() {
+        updateReportName();
+    });
+
+    // Если есть начальные значения
     var initialProjectId = projectSelect.val();
     if (initialProjectId) {
         updateVersions(initialProjectId);
+    }
+
+    // Если название уже заполнено при загрузке страницы, считаем что оно отредактировано пользователем
+    if (nameInput.val()) {
+        userEditedName = true;
     }
 });

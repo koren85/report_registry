@@ -6,9 +6,8 @@
     <!-- Поле названия отчёта -->
     <p>
       <%= f.label :name, l(:field_name) %><br>
-      <%= f.text_field :name, required: true, maxlength: 254, style: 'width: 40%;' %>
+      <%= f.text_field :name, required: true, maxlength: 254, style: 'width: 40%;', id: 'report_name' %>
     </p>
-
     <!-- Поле выбора проекта -->
     <% unless @project %>
       <p>
@@ -39,7 +38,10 @@
     <!-- Поле выбора периода -->
     <p>
       <%= f.label :period, l(:field_period) %><br>
-      <%= f.select :period, [['Месячный', 'месячный'], ['Квартальный', 'квартальный'], ['Годовой', 'годовой'], ['Прочее', 'прочее']] %>
+      <%= f.select :period,
+                   [['Месячный', 'месячный'], ['Квартальный', 'квартальный'], ['Годовой', 'годовой'], ['Прочее', 'прочее']],
+                   {},
+                   { id: 'report_period' } %>
     </p>
 
     <!-- Поле выбора даты начала -->
@@ -57,7 +59,7 @@
     <!-- Поле номера контракта -->
     <p>
       <%= f.label :contract_number, l(:field_contract_number) %><br>
-      <%= f.text_field :contract_number %>
+      <%= f.text_field :contract_number, id: 'report_contract_number' %>
     </p>
 
     <!-- Поле выбора задач -->
