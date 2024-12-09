@@ -16,7 +16,7 @@ Redmine::Plugin.register :report_registry do
 
   # Добавление пункта в главное меню (top_menu)
   menu :top_menu, :global_reports,
-       { controller: 'reports', action: 'index' },
+       { controller: 'reports', action: 'index' ,  project_id: nil},
        caption: 'Все отчёты',
        if: Proc.new { User.current.allowed_to_globally?(:view_reports_global) },
        html: { class: 'icon icon-reports' }

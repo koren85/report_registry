@@ -52,7 +52,10 @@ class ReportsController < ApplicationController
     @report.created_by = User.current.id
 
     if @report.save
+      flash[:notice] = l(:notice_successful_create)
       redirect_to(@project ? project_reports_path(@project) : reports_path, notice: 'Отчёт успешно создан')
+      # redirect_to(params[:from_global] == 'true' ? reports_path : project_reports_path(@report.project))
+
     else
       load_versions
       render :new
@@ -92,6 +95,7 @@ class ReportsController < ApplicationController
       else
         redirect_to project_reports_path(@report.project)
       end
+      #  redirect_to(params[:from_global] == 'true' ? reports_path : project_reports_path(@report.project))
     else
       load_project_and_versions
       @from_global = params[:from_global]
