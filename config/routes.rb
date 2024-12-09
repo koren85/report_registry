@@ -4,6 +4,9 @@ RedmineApp::Application.routes.draw do
     member do
       patch :approve
     end
+    collection do
+      get :load_project_versions
+    end
   end
 
   # Маршруты в контексте проекта

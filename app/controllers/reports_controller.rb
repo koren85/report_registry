@@ -72,6 +72,14 @@ class ReportsController < ApplicationController
     @projects_with_module = Project.active.has_module(:report_registry) unless @project
   end
 
+  def load_project_versions
+    project = Project.find(params[:project_id])
+    versions = project.versions.where.not(status: 'closed').map { |v| { id: v.id, name: v.name } }
+
+    render json: versions
+  rescue ActiveRecord::RecordNotFound
+    render json: []
+  end
 
   def update
     @report.assign_attributes(report_params)
@@ -138,6 +146,8 @@ class ReportsController < ApplicationController
       render_403
     end
   end
+
+
 
   def authorize_global
     # Проверка глобального права

@@ -17,7 +17,8 @@
                                 @projects_with_module,
                                 :id, :name,
                                 { include_blank: true },
-                                class: 'select2', id: 'project-select' %>
+                                class: 'select2',
+                                id: 'project-select' %>
       </p>
     <% else %>
       <%= f.hidden_field :project_id, value: @project.id %>
@@ -30,7 +31,9 @@
                               @versions || [],
                               :id, :name,
                               { include_blank: true },
-                              class: 'select2', id: 'version-select' %>
+                              class: 'select2',
+                              id: 'version-select',
+                              disabled: @versions.blank? %>
     </p>
 
     <!-- Поле выбора периода -->
@@ -69,4 +72,7 @@
   </fieldset>
 
   <%= f.submit l(:button_save), class: 'icon icon-save' %>
+<% end %>
+<% content_for :header_tags do %>
+  <%= javascript_include_tag 'project_versions', plugin: 'report_registry' %>
 <% end %>
