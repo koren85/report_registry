@@ -17,7 +17,8 @@ class ReportQuery < Query
   ]
 
   def base_scope
-    Report.includes(:project).references(:project)
+    Report.includes(:project, :creator).
+      references(:project, :creator)
   end
 
   def initialize(attributes=nil, *args)
@@ -49,26 +50,44 @@ class ReportQuery < Query
   def joins_for_order_statement(order_options={})
     joins = []
 
-    if order_options
-      if order_options.include?('project')
-        joins << "LEFT JOIN #{Project.table_name} ON #{Project.table_name}.id = #{Report.table_name}.project_id"
-      end
+    joins << "LEFT JOIN #{Project.table_name} ON #{Project.table_name}.id = #{Report.table_name}.project_id"
+    joins << "LEFT JOIN #{User.table_name} users_created ON users_created.id = #{Report.table_name}.created_by"
+    joins << "LEFT JOIN #{User.table_name} users_updated ON users_updated.id = #{Report.table_name}.updated_by"
+    joins << "LEFT JOIN #{Version.table_name} ON #{Version.table_name}.id = #{Report.table_name}.version_id"
 
-      if order_options.include?('created_by') || order_options.include?('updated_by')
-        joins << "LEFT JOIN #{User.table_name} ON #{User.table_name}.id = #{Report.table_name}.created_by"
-      end
-
-      if order_options.include?('version')
-        joins << "LEFT JOIN #{Version.table_name} ON #{Version.table_name}.id = #{Report.table_name}.version_id"
-      end
-    end
-
-    joins.any? ? joins.join(' ') : nil
+    joins.join(' ')
   end
 
+  # Переопределяем метод для создания правильных условий фильтра
+  def statement
+    filters_clauses = []
+    filters.each_key do |field|
+      next if field == 'subproject_id'
+      v = values_for(field).clone
+      next unless v and !v.empty?
+      operator = operator_for(field)
+
+      # Добавляем условие в зависимости от поля
+      sql = case field
+            when 'created_by'
+              sql_for_created_by_field(field, operator, v)
+            when 'updated_by'
+              sql_for_field(field, operator, v, Report.table_name, 'updated_by')
+            else
+              sql_for_field(field, operator, v, Report.table_name, field)
+            end
+
+      filters_clauses << "(#{sql})" if sql.present?
+    end
+
+    filters_clauses.any? ? filters_clauses.join(' AND ') : nil
+  end
 
   def sql_for_created_by_field(field, operator, value)
-    sql_for_field(field, operator, value, User.table_name, 'id')
+    if value.delete('me')
+      value.push(User.current.id.to_s)
+    end
+    sql_for_field(field, operator, value, Report.table_name, 'created_by')
   end
 
   def sql_for_version_id_field(field, operator, value)
@@ -95,5 +114,11 @@ class ReportQuery < Query
   def version_values
     versions = Version.visible
     versions.collect{|s| ["#{s.project.name} - #{s.name}", s.id.to_s]}
+  end
+
+  def author_values
+    values = [[l(:label_me), 'me']]
+    values += User.active.sorted.map { |u| [u.name, u.id.to_s] }
+    values
   end
 end

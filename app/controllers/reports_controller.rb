@@ -36,7 +36,6 @@ class ReportsController < ApplicationController
     retrieve_query
     @query.project = @project if @project
 
-    # Используем базовый scope из query
     scope = @query.base_scope
 
     if params[:project_id]
@@ -46,9 +45,8 @@ class ReportsController < ApplicationController
     sort_init(@query.sort_criteria.empty? ? ['id', 'desc'] : @query.sort_criteria)
     sort_update(@query.sortable_columns)
 
-    # Применяем фильтры и джойны
+    # Применяем фильтры если они есть
     if @query.valid? && @query.statement.present?
-      scope = scope.joins(@query.joins_for_order_statement(sort_clause))
       scope = scope.where(@query.statement)
     end
 
@@ -57,10 +55,7 @@ class ReportsController < ApplicationController
 
     @item_count = scope.count
     @item_pages = Paginator.new @item_count, per_page_option, params['page']
-
-    @items = scope.
-      limit(@item_pages.per_page).
-      offset(@item_pages.offset)
+    @items = scope.limit(@item_pages.per_page).offset(@item_pages.offset)
 
     respond_to do |format|
       format.html
