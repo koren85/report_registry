@@ -8,67 +8,97 @@
               class: 'icon icon-add' %>
 </div>
 
-<% if @items.any? %>
-  <table class="list reports">
-    <thead>
-    <tr>
-      <%= sort_header_tag('id', caption: 'ID', title: '') %>
-      <%= sort_header_tag('name', caption: l(:'reports.table.name'), title: '') %>
-      <%= sort_header_tag('period', caption: l(:'reports.table.period'), title: '') %>
-      <%= sort_header_tag('status', caption: l(:'reports.table.status'), title: '') %>
-      <%= sort_header_tag('created_at', caption: l(:'reports.table.created_at'), title: '') %>
-      <%= sort_header_tag('created_by', caption: l(:'reports.table.created_by'), title: '') %>
-      <%= sort_header_tag('updated_at', caption: l(:'reports.table.updated_at'), title: '') %>
-      <%= sort_header_tag('updated_by', caption: l(:'reports.table.updated_by'), title: '') %>
-      <% unless @project %>
-        <%= sort_header_tag('project_id', caption: l(:field_project), title: '') %>
-        <%= sort_header_tag('version_id', caption: l(:field_version), title: '') %>
-      <% end %>
-      <%= sort_header_tag('contract_number', caption: l(:'reports.table.contract_number'), title: '') %>
-      <th class="buttons"></th>
-    </tr>
-    </thead>
-    <tbody>
-    <% @items.each do |report| %>
-      <tr class="<%= cycle('odd', 'even') %>">
-        <td class="id"><%= report.id %></td>
-        <td class="name"><%= report.name %></td>
-        <td class="period"><%= report.period %></td>
-        <td class="status <%= report.status %>"><%= report.status %></td>
-        <td class="created_on"><%= format_time(report.created_at) %></td>
-        <td class="created_by"><%= User.find_by(id: report.created_by)&.name %></td>
-        <td class="updated_on"><%= format_time(report.updated_at) %></td>
-        <td class="updated_by"><%= User.find_by(id: report.updated_by)&.name %></td>
-        <% unless @project %>
-          <td class="project">
-            <%= link_to report.project.name, project_reports_path(report.project) if report.project %>
-          </td>
-          <td class="version">
-            <%= link_to report.version.name, version_path(report.version) if report.version %>
-          </td>
-        <% end %>
-        <td class="contract_number"><%= report.contract_number %></td>
-        <td class="buttons">
-          <% if @project %>
-            <%= link_to l(:button_edit), edit_project_report_path(@project, report), class: 'icon icon-edit' %>
-            <%= link_to l(:button_delete), project_report_path(@project, report), method: :delete, data: { confirm: l(:text_are_you_sure) }, class: 'icon icon-del' %>
-            <% if report.status != 'утвержден' %>
-              <%= link_to l(:button_approve), approve_project_report_path(@project, report), method: :patch, class: 'icon icon-approve' %>
-            <% end %>
-          <% else %>
-            <%= link_to l(:button_edit), edit_report_path(report, from_global: true), class: 'icon icon-edit' %>
-            <%= link_to l(:button_delete), report_path(report), method: :delete, data: { confirm: l(:text_are_you_sure) }, class: 'icon icon-del' %>
-            <% if report.status != 'утвержден' %>
-              <%= link_to l(:button_approve), approve_report_path(report), method: :patch, class: 'icon icon-approve' %>
-            <% end %>
-          <% end %>
-        </td>
-      </tr>
-    <% end %>
-    </tbody>
-  </table>
+<div id="query_form_with_buttons" class="hide-when-print">
+  <%= form_tag(@project ? project_reports_path(@project) : reports_path, method: :get, id: 'query_form') do %>
+    <%= hidden_field_tag 'set_filter', '1' %>
+    <div id="query_form_content">
+      <fieldset id="filters" class="collapsible <%= @query.new_record? ? "" : "collapsed" %>">
+        <legend onclick="toggleFieldset(this);"><%= l(:label_filter_plural) %></legend>
+        <div style="<%= @query.new_record? ? "" : "display: none;" %>">
+          <%= render partial: 'queries/filters', locals: { query: @query } %>
+        </div>
+      </fieldset>
+    </div>
+    <p class="buttons">
+      <%= submit_tag l(:button_apply), name: nil, class: 'button-small' %>
+      <%= link_to l(:button_clear), { set_filter: 1, project_id: @project.try(:id) }, class: 'button-small' %>
+    </p>
+  <% end %>
+</div>
 
-  <span class="pagination"><%= pagination_links_full @item_pages, @item_count %></span>
-<% else %>
-  <p class="nodata"><%= l(:label_no_data) %></p>
+<% if @query.valid? %>
+  <% if @items.empty? %>
+    <p class="nodata"><%= l(:label_no_data) %></p>
+  <% else %>
+    <table class="list reports">
+      <thead>
+      <tr>
+        <%= sort_header_tag('id', caption: 'ID', default_order: 'desc', title: '') %>
+        <%= sort_header_tag('name', caption: l(:'reports.table.name'), title: '') %>
+        <%= sort_header_tag('period', caption: l(:'reports.table.period'), title: '') %>
+        <%= sort_header_tag('status', caption: l(:'reports.table.status'), title: '') %>
+        <%= sort_header_tag('created_at', caption: l(:'reports.table.created_at'), title: '') %>
+        <%= sort_header_tag('created_by', caption: l(:'reports.table.created_by'), title: '') %>
+        <%= sort_header_tag('updated_at', caption: l(:'reports.table.updated_at'), title: '') %>
+        <%= sort_header_tag('updated_by', caption: l(:'reports.table.updated_by'), title: '') %>
+        <% unless @project %>
+          <%= sort_header_tag('project_id', caption: l(:field_project), title: '') %>
+          <%= sort_header_tag('version_id', caption: l(:field_version), title: '') %>
+        <% end %>
+        <%= sort_header_tag('contract_number', caption: l(:'reports.table.contract_number'), title: '') %>
+        <th class="buttons"></th>
+      </tr>
+      </thead>
+      <tbody>
+      <% @items.each do |report| %>
+        <tr class="<%= cycle('odd', 'even') %>">
+          <td class="id"><%= report.id %></td>
+          <td class="name"><%= report.name %></td>
+          <td class="period"><%= report.period %></td>
+          <td class="status <%= report.status %>"><%= report.status %></td>
+          <td class="created_on"><%= format_time(report.created_at) %></td>
+          <td class="created_by"><%= User.find_by(id: report.created_by)&.name %></td>
+          <td class="updated_on"><%= format_time(report.updated_at) %></td>
+          <td class="updated_by"><%= User.find_by(id: report.updated_by)&.name %></td>
+          <% unless @project %>
+            <td class="project">
+              <%= link_to report.project.name, project_reports_path(report.project) if report.project %>
+            </td>
+            <td class="version">
+              <%= report.version.try(:name) %>
+            </td>
+          <% end %>
+          <td class="contract_number"><%= report.contract_number %></td>
+          <td class="buttons">
+            <% if @project %>
+              <%= link_to l(:button_edit), edit_project_report_path(@project, report), class: 'icon icon-edit' %>
+              <%= link_to l(:button_delete), project_report_path(@project, report),
+                          method: :delete,
+                          data: { confirm: l(:text_are_you_sure) },
+                          class: 'icon icon-del' %>
+              <% if report.status != 'утвержден' %>
+                <%= link_to l(:button_approve), approve_project_report_path(@project, report),
+                            method: :patch,
+                            class: 'icon icon-approve' %>
+              <% end %>
+            <% else %>
+              <%= link_to l(:button_edit), edit_report_path(report), class: 'icon icon-edit' %>
+              <%= link_to l(:button_delete), report_path(report),
+                          method: :delete,
+                          data: { confirm: l(:text_are_you_sure) },
+                          class: 'icon icon-del' %>
+              <% if report.status != 'утвержден' %>
+                <%= link_to l(:button_approve), approve_report_path(report),
+                            method: :patch,
+                            class: 'icon icon-approve' %>
+              <% end %>
+            <% end %>
+          </td>
+        </tr>
+      <% end %>
+      </tbody>
+    </table>
+
+    <span class="pagination"><%= pagination_links_full @item_pages, @item_count %></span>
+  <% end %>
 <% end %>

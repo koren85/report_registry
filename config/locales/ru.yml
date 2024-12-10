@@ -37,4 +37,6 @@ ru:
   field_project: 'Проект'
   menu_reports_all: 'Все отчёты'
   field_period_type: 'Период'
-
+  field_created_by: 'Кем создано'
+  field_created_at: 'Создано'
+  field_updated_at: 'Обновлено'

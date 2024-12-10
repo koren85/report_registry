@@ -1,6 +1,8 @@
 class ReportsController < ApplicationController
   helper :sort
   include SortHelper
+  helper :queries
+  include QueriesHelper
   before_action :require_login
   before_action :find_report, only: [:edit, :update, :destroy, :approve, :show]
   before_action :find_project
@@ -13,21 +15,56 @@ class ReportsController < ApplicationController
   before_action :authorize_global, only: [:index], if: -> { !User.current.admin? && @project.nil? }
   before_action :authorize, if: -> { !User.current.admin? && @project.present? }
 
-  def index
-    sort_init 'created_at', 'desc'
-    sort_update %w(id name period status created_at updated_at created_by updated_by project_id)
+  # def index
+  #   sort_init 'created_at', 'desc'
+  #   sort_update %w(id name period status created_at updated_at created_by updated_by project_id)
+  #
+  #   scope = @project ? @project.reports : Report.includes(:project)
+  #   scope = scope.order(sort_clause)
+  #
+  #   @limit = per_page_option
+  #   @item_count = scope.count
+  #   @item_pages = Paginator.new @item_count, @limit, params['page']
+  #   @items = scope.offset(@item_pages.offset).limit(@item_pages.per_page)
+  #
+  #   @periods = Report.distinct.pluck(:period)
+  #   @statuses = %w[черновик в_работе сформирован утвержден]
+  #   @users = User.all
+  # end
 
-    scope = @project ? @project.reports : Report.includes(:project)
+  def index
+    retrieve_query
+    @query.project = @project if @project
+
+    # Используем базовый scope из query
+    scope = @query.base_scope
+
+    if params[:project_id]
+      scope = scope.where(project_id: @project.id)
+    end
+
+    sort_init(@query.sort_criteria.empty? ? ['id', 'desc'] : @query.sort_criteria)
+    sort_update(@query.sortable_columns)
+
+    # Применяем фильтры и джойны
+    if @query.valid? && @query.statement.present?
+      scope = scope.joins(@query.joins_for_order_statement(sort_clause))
+      scope = scope.where(@query.statement)
+    end
+
+    # Применяем сортировку
     scope = scope.order(sort_clause)
 
-    @limit = per_page_option
     @item_count = scope.count
-    @item_pages = Paginator.new @item_count, @limit, params['page']
-    @items = scope.offset(@item_pages.offset).limit(@item_pages.per_page)
+    @item_pages = Paginator.new @item_count, per_page_option, params['page']
 
-    @periods = Report.distinct.pluck(:period)
-    @statuses = %w[черновик в_работе сформирован утвержден]
-    @users = User.all
+    @items = scope.
+      limit(@item_pages.per_page).
+      offset(@item_pages.offset)
+
+    respond_to do |format|
+      format.html
+    end
   end
 
   def new
@@ -119,6 +156,19 @@ class ReportsController < ApplicationController
   end
 
   private
+
+  def retrieve_query
+    if params[:set_filter] || session[:reports_query].nil?
+      @query = ReportQuery.new(:name => "_")
+      @query.build_from_params(params)
+      session[:reports_query] = {:filters => @query.filters, :group_by => @query.group_by, :column_names => @query.column_names}
+    else
+      @query = ReportQuery.new(:name => "_",
+                               :filters => session[:reports_query][:filters] || params[:fields] || {},
+                               :group_by => session[:reports_query][:group_by],
+                               :column_names => session[:reports_query][:column_names])
+    end
+  end
 
   def report_params
     params.require(:report).permit(:name, :period, :start_date, :end_date, :status, :total_hours,
