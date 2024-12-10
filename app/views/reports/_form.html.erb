@@ -60,7 +60,7 @@
                            options_for_select((1..12).map { |m| [t('date.month_names')[m], m] }),
                            { class: 'period-select', id: 'month_select', style: 'width: 150px; margin-right: 10px;' } %>
             <%= select_tag 'year',
-                           options_for_select((Time.current.year-5..Time.current.year+1).to_a),
+                           options_for_select((Time.current.year-1..Time.current.year+1).to_a),
                            { class: 'period-select', id: 'year_select', style: 'width: 100px;' } %>
           </span>
         </p>
@@ -71,11 +71,11 @@
           <label>Квартал и год отчета</label>
           <span class="inline-flex">
             <%= select_tag 'quarter',
-                           options_for_select([['Q1 (Янв-Мар)', 1], ['Q2 (Апр-Июн)', 2],
-                                               ['Q3 (Июл-Сен)', 3], ['Q4 (Окт-Дек)', 4]]),
+                           options_for_select([['Квартал 1 (Янв-Мар)', 1], ['Квартал 2 (Апр-Июн)', 2],
+                                               ['Квартал 3 (Июл-Сен)', 3], ['Квартал 4 (Окт-Дек)', 4]]),
                            { class: 'period-select', id: 'quarter_select', style: 'width: 150px; margin-right: 10px;' } %>
             <%= select_tag 'year',
-                           options_for_select((Time.current.year-5..Time.current.year+1).to_a),
+                           options_for_select((Time.current.year-1..Time.current.year+1).to_a),
                            { class: 'period-select', id: 'year_select_q', style: 'width: 100px;' } %>
           </span>
         </p>
@@ -85,7 +85,7 @@
         <p>
           <label>Год отчета</label>
           <%= select_tag 'year',
-                         options_for_select((Time.current.year-5..Time.current.year+1).to_a),
+                         options_for_select((Time.current.year-1..Time.current.year+1).to_a),
                          { class: 'period-select', id: 'year_select_y', style: 'width: 150px;' } %>
         </p>
       </div>
