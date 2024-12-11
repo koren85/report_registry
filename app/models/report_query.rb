@@ -2,23 +2,23 @@ class ReportQuery < Query
   self.queried_class = Report
 
   self.available_columns = [
-    QueryColumn.new(:id, sortable: 'id', caption: 'ID'),
-    QueryColumn.new(:name, sortable: 'name', caption: :field_name),
+    QueryColumn.new(:id, sortable: "#{Report.table_name}.id", caption: 'ID'),
+    QueryColumn.new(:name, sortable: "#{Report.table_name}.name", caption: :field_name),
     QueryColumn.new(:project, sortable: "#{Project.table_name}.name", groupable: true),
-    QueryColumn.new(:period, sortable: 'period', caption: :field_period),
-    QueryColumn.new(:start_date, sortable: 'start_date', caption: :field_start_date),
-    QueryColumn.new(:end_date, sortable: 'end_date', caption: :field_end_date),
-    QueryColumn.new(:status, sortable: 'status', caption: :field_status),
-    QueryColumn.new(:created_at, sortable: 'created_at', caption: :field_created_on),
-    QueryColumn.new(:updated_at, sortable: 'updated_at', caption: :field_updated_on),
+    QueryColumn.new(:period, sortable: "#{Report.table_name}.period", caption: :field_period),
+    QueryColumn.new(:start_date, sortable: "#{Report.table_name}.start_date", caption: :field_start_date),
+    QueryColumn.new(:end_date, sortable: "#{Report.table_name}.end_date", caption: :field_end_date),
+    QueryColumn.new(:status, sortable: "#{Report.table_name}.status", caption: :field_status),
+    QueryColumn.new(:created_at, sortable: "#{Report.table_name}.created_at", caption: :field_created_on),
+    QueryColumn.new(:updated_at, sortable: "#{Report.table_name}.updated_at", caption: :field_updated_on),
     QueryColumn.new(:created_by, sortable: "#{User.table_name}.lastname", caption: :field_created_by),
-    QueryColumn.new(:contract_number, sortable: 'contract_number', caption: :field_contract_number),
+    QueryColumn.new(:contract_number, sortable: "#{Report.table_name}.contract_number", caption: :field_contract_number),
     QueryColumn.new(:version, sortable: "#{Version.table_name}.name", groupable: true)
   ]
 
   def base_scope
-    Report.includes(:project, :creator).
-      references(:project, :creator)
+    Report.includes(:project, :creator, :version).
+      references(:project, :creator, :version)
   end
 
   def initialize(attributes=nil, *args)
@@ -50,15 +50,16 @@ class ReportQuery < Query
   def joins_for_order_statement(order_options={})
     joins = []
 
-    joins << "LEFT JOIN #{Project.table_name} ON #{Project.table_name}.id = #{Report.table_name}.project_id"
-    joins << "LEFT JOIN #{User.table_name} users_created ON users_created.id = #{Report.table_name}.created_by"
-    joins << "LEFT JOIN #{User.table_name} users_updated ON users_updated.id = #{Report.table_name}.updated_by"
-    joins << "LEFT JOIN #{Version.table_name} ON #{Version.table_name}.id = #{Report.table_name}.version_id"
+    if order_options.keys.any? { |k| k.match(/project|version|created_by|updated_by/) }
+      joins << "LEFT JOIN #{Project.table_name} ON #{Project.table_name}.id = #{Report.table_name}.project_id"
+      joins << "LEFT JOIN #{User.table_name} users_created ON users_created.id = #{Report.table_name}.created_by"
+      joins << "LEFT JOIN #{User.table_name} users_updated ON users_updated.id = #{Report.table_name}.updated_by"
+      joins << "LEFT JOIN #{Version.table_name} ON #{Version.table_name}.id = #{Report.table_name}.version_id"
+    end
 
     joins.join(' ')
   end
 
-  # Переопределяем метод для создания правильных условий фильтра
   def statement
     filters_clauses = []
     filters.each_key do |field|
@@ -67,7 +68,6 @@ class ReportQuery < Query
       next unless v and !v.empty?
       operator = operator_for(field)
 
-      # Добавляем условие в зависимости от поля
       sql = case field
             when 'created_by'
               sql_for_created_by_field(field, operator, v)
@@ -91,7 +91,7 @@ class ReportQuery < Query
   end
 
   def sql_for_version_id_field(field, operator, value)
-    sql_for_field(field, operator, value, Version.table_name, 'id')
+    sql_for_field(field, operator, value, Report.table_name, 'version_id')
   end
 
   private

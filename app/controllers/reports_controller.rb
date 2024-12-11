@@ -25,7 +25,8 @@ class ReportsController < ApplicationController
       scope = scope.where(project_id: @project.id)
     end
 
-    sort_init(@query.sort_criteria.empty? ? ['id', 'desc'] : @query.sort_criteria)
+    # Обновляем инициализацию сортировки
+    sort_init(@query.sort_criteria.empty? ? [["#{Report.table_name}.id", 'desc']] : @query.sort_criteria)
     sort_update(@query.sortable_columns)
 
     # Применяем фильтры если они есть
@@ -33,8 +34,12 @@ class ReportsController < ApplicationController
       scope = scope.where(@query.statement)
     end
 
-    # Применяем сортировку
-    scope = scope.order(sort_clause)
+    # Применяем сортировку, проверяя наличие sort_clause
+    if sort_clause.present?
+      scope = scope.order(sort_clause)
+    else
+      scope = scope.order("#{Report.table_name}.id DESC")
+    end
 
     @item_count = scope.count
     @item_pages = Paginator.new @item_count, per_page_option, params['page']

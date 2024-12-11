@@ -36,4 +36,9 @@ Redmine::Plugin.register :report_registry do
        param: :project_id,
        if: Proc.new { |project| project.module_enabled?(:report_registry) }
 
+  # Добавляем новые assets
+  settings default: {
+    'enabled_projects' => [],
+    'subtask_field_id' => nil
+  }, partial: 'settings/report_registry_settings'
 end

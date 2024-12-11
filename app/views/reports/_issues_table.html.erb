@@ -1,0 +1,65 @@
+<div id="issues-table-container" style="display: none;" class="box">
+  <div class="issues-table-header">
+    <button type="button" class="button" id="new-issue-btn">
+      <span class="icon icon-add"></span>
+      Создать задачу
+    </button>
+  </div>
+
+  <table class="list issues-list">
+    <thead>
+    <tr>
+      <th class="sortable" data-sort="id">#</th>
+      <th class="sortable" data-sort="subject">Тема</th>
+      <th class="sortable" data-sort="status">Статус</th>
+      <th class="sortable" data-sort="fixed_version_id">Версия</th>
+      <th class="sortable" data-sort="start_date">Дата начала</th>
+      <th class="sortable" data-sort="due_date">Срок завершения</th>
+      <th class="sortable" data-sort="parent_id">Родительская задача</th>
+      <th class="sortable" data-sort="custom_field_value">Подзадача</th>
+    </tr>
+    </thead>
+    <tbody id="issues-table-body">
+    </tbody>
+  </table>
+</div>
+
+<div id="new-issue-modal" style="display: none;" class="modal">
+  <h3>Создание новой задачи</h3>
+  <form id="new-issue-form">
+    <div class="form-field">
+      <label for="issue_subject">Тема</label>
+      <input type="text" id="issue_subject" name="issue[subject]" required>
+    </div>
+
+    <div class="form-field">
+      <label for="issue_status_id">Статус</label>
+      <select id="issue_status_id" name="issue[status_id]"></select>
+    </div>
+
+    <div class="form-field">
+      <label for="issue_fixed_version_id">Версия</label>
+      <select id="issue_fixed_version_id" name="issue[fixed_version_id]"></select>
+    </div>
+
+    <div class="form-field">
+      <label for="issue_start_date">Дата начала</label>
+      <input type="date" id="issue_start_date" name="issue[start_date]">
+    </div>
+
+    <div class="form-field">
+      <label for="issue_due_date">Срок завершения</label>
+      <input type="date" id="issue_due_date" name="issue[due_date]">
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" class="button-positive">Создать</button>
+      <button type="button" class="button" id="cancel-issue-btn">Отмена</button>
+    </div>
+  </form>
+</div>
+
+<% content_for :header_tags do %>
+  <%= javascript_include_tag 'issues_table', plugin: 'report_registry' %>
+<%=  stylesheet_link_tag('issues_table', plugin: 'report_registry') %>
+<%end%>

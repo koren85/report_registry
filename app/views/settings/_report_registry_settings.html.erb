@@ -1,5 +1,19 @@
 <!-- plugins/report_registry/app/views/settings/_report_registry_settings.html.erb -->
-<p><%= l(:field_enabled_projects) %></p>
-<%= select_tag 'settings[enabled_projects][]',
-               options_from_collection_for_select(Project.all, :id, :name, Setting.plugin_report_registry['enabled_projects']),
-               multiple: true %>
+<p>
+  <%= l(:field_enabled_projects) %>
+  <%= select_tag 'settings[enabled_projects][]',
+                 options_from_collection_for_select(Project.all, :id, :name, Setting.plugin_report_registry['enabled_projects']),
+                 multiple: true %>
+</p>
+
+<p>
+  <%= l(:label_subtask_custom_field) %>
+  <%= select_tag 'settings[subtask_field_id]',
+                 options_from_collection_for_select(
+                   CustomField.where(type: 'IssueCustomField'),
+                   :id,
+                   :name,
+                   Setting.plugin_report_registry['subtask_field_id']
+                 ),
+                 include_blank: true %>
+</p>

@@ -40,3 +40,18 @@ ru:
   field_created_by: 'Кем создано'
   field_created_at: 'Создано'
   field_updated_at: 'Обновлено'
+  label_subtask_custom_field: "Поле для подзадачи"
+  button_show_issues_table: "Показать таблицу задач"
+  button_create_issue: "Создать задачу"
+  label_new_issue: "Новая задача"
+
+
+  # Заголовки таблицы
+  label_issue_id: "#"
+  label_issue_subject: "Тема"
+  label_issue_status: "Статус"
+  label_issue_version: "Версия"
+  label_issue_start_date: "Дата начала"
+  label_issue_due_date: "Срок завершения"
+  label_issue_parent: "Родительская задача"
+  label_issue_subtask: "Подзадача"
