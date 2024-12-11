@@ -15,23 +15,6 @@ class ReportsController < ApplicationController
   before_action :authorize_global, only: [:index], if: -> { !User.current.admin? && @project.nil? }
   before_action :authorize, if: -> { !User.current.admin? && @project.present? }
 
-  # def index
-  #   sort_init 'created_at', 'desc'
-  #   sort_update %w(id name period status created_at updated_at created_by updated_by project_id)
-  #
-  #   scope = @project ? @project.reports : Report.includes(:project)
-  #   scope = scope.order(sort_clause)
-  #
-  #   @limit = per_page_option
-  #   @item_count = scope.count
-  #   @item_pages = Paginator.new @item_count, @limit, params['page']
-  #   @items = scope.offset(@item_pages.offset).limit(@item_pages.per_page)
-  #
-  #   @periods = Report.distinct.pluck(:period)
-  #   @statuses = %w[черновик в_работе сформирован утвержден]
-  #   @users = User.all
-  # end
-
   def index
     retrieve_query
     @query.project = @project if @project
