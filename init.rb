@@ -36,9 +36,13 @@ Redmine::Plugin.register :report_registry do
        param: :project_id,
        if: Proc.new { |project| project.module_enabled?(:report_registry) }
 
-  # Добавляем новые assets
-  settings default: {
-    'enabled_projects' => [],
-    'subtask_field_id' => nil
-  }, partial: 'settings/report_registry_settings'
+
+  # Добавляем настройки плагина
+  settings(
+    default: {
+      'custom_field_id' => nil,
+      'custom_field_name' => 'Кастомное поле'
+    },
+    partial: 'settings/report_registry_settings'
+  )
 end

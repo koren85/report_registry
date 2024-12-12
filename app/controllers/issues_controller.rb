@@ -1,73 +1,34 @@
 class IssuesController < ApplicationController
   before_action :find_project
-  before_action :authorize, except: [:index]
+  before_action :authorize
 
-  helper :sort
-  include SortHelper
-
-  def index
-    @issues = @project.issues.open
-    render json: @issues.select(:id, :subject)
-  end
-
-  # Метод для получения данных таблицы с сортировкой
-  def table_data
-    sort_init 'id', 'asc'
-    sort_update %w(id subject status_id fixed_version_id start_date due_date parent_id)
-
+  def index_for_report
     @issues = @project.issues
-                     .includes(:status, :fixed_version, :parent)
-                     .order(sort_clause)
+                      .includes(:status, :fixed_version, :parent, :project)
+                      .order(sort_clause)
 
-    # Получаем ID кастомного поля "подзадача" из настроек плагина
-    subtask_field_id = Setting.plugin_report_registry['subtask_field_id']
-
-    issues_data = @issues.map do |issue|
-      {
-        id: issue.id,
-        subject: issue.subject,
-        status: issue.status.try(:name),
-        version: issue.fixed_version.try(:name),
-        start_date: issue.start_date,
-        due_date: issue.due_date,
-        parent_issue: issue.parent.try(:subject),
-        subtask: subtask_field_id ? issue.custom_field_value(subtask_field_id) : nil
-      }
-    end
-
-    render json: issues_data
+    render json: issues_to_json(@issues)
   end
 
-  # Получение списка доступных статусов для новой задачи
-  def statuses
-    statuses = IssueStatus.sorted.map { |s| { id: s.id, name: s.name } }
-    render json: statuses
-  end
-
-  # Создание новой задачи
-  def create
-    @issue = Issue.new(issue_params)
-    @issue.project = @project
+  def create_for_report
+    @issue = @project.issues.build(issue_params)
     @issue.author = User.current
-    @issue.tracker ||= @project.trackers.first
 
     if @issue.save
-      render json: {
-        success: true,
-        issue: {
-          id: @issue.id,
-          subject: @issue.subject,
-          status: @issue.status.try(:name),
-          version: @issue.fixed_version.try(:name),
-          start_date: @issue.start_date,
-          due_date: @issue.due_date,
-          parent_issue: @issue.parent.try(:subject),
-          subtask: @issue.custom_field_value(Setting.plugin_report_registry['subtask_field_id'])
-        }
-      }
+      render json: issue_to_json(@issue)
     else
-      render json: { success: false, errors: @issue.errors.full_messages }, status: :unprocessable_entity
+      render json: { errors: @issue.errors }, status: :unprocessable_entity
     end
+  end
+
+  def statuses
+    @statuses = IssueStatus.all
+    render json: @statuses.map { |s| { id: s.id, name: s.name } }
+  end
+
+  def assignable_users
+    @users = @project.assignable_users
+    render json: @users.map { |u| { id: u.id, name: u.name } }
   end
 
   private
@@ -75,7 +36,7 @@ class IssuesController < ApplicationController
   def find_project
     @project = Project.find(params[:project_id])
   rescue ActiveRecord::RecordNotFound
-    render_404
+    render json: { error: 'Project not found' }, status: :not_found
   end
 
   def issue_params
@@ -83,10 +44,39 @@ class IssuesController < ApplicationController
       :subject,
       :status_id,
       :fixed_version_id,
+      :assigned_to_id,
       :start_date,
       :due_date,
-      :parent_id,
-      custom_field_values: [Setting.plugin_report_registry['subtask_field_id']]
+      :custom_field_values
     )
+  end
+
+  def issues_to_json(issues)
+    issues.map { |issue| issue_to_json(issue) }
+  end
+
+  def issue_to_json(issue)
+    custom_field = Setting.plugin_report_registry['custom_field_id']
+    custom_value = issue.custom_field_values.find { |v| v.custom_field_id.to_s == custom_field.to_s }&.value
+
+    {
+      id: issue.id,
+      subject: issue.subject,
+      status: issue.status.name,
+      project: issue.project.name,
+      version: issue.fixed_version&.name,
+      start_date: issue.start_date,
+      due_date: issue.due_date,
+      parent_issue: issue.parent&.subject,
+      custom_field_value: custom_value
+    }
+  end
+
+  def sort_clause
+    if params[:sort] && params[:direction]
+      "#{params[:sort]} #{params[:direction]}"
+    else
+      'id DESC'
+    end
   end
 end

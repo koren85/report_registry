@@ -129,12 +129,12 @@
                                 { include_blank: false },
                                 { multiple: true, class: 'select2', id: 'issues-select', style: 'width: 100%;' } %>
       </p>
-      <p>
-        <button type="button" class="button" id="toggle-issues-table">
-          <span class="icon icon-list"></span>
-          <%= l(:button_show_issues_table) %>
-        </button>
-      </p>
+<!--      <p>-->
+<!--        <button type="button" class="button" id="toggle-issues-table">-->
+<!--          <span class="icon icon-list"></span>-->
+          <%#= l(:button_show_issues_table) %>
+<!--        </button>-->
+<!--      </p>-->
     </div>
 
     <%= render 'issues_table' %>
@@ -151,21 +151,21 @@
   <%= javascript_include_tag 'common', plugin: 'report_registry' %>
   <%= javascript_include_tag 'project_versions', plugin: 'report_registry' %>
   <%= javascript_include_tag 'date_period_handler', plugin: 'report_registry' %>
-  <style>
-      .width-100 { width: 100%; }
-      .inline-flex { display: flex; align-items: center; }
-      .box { margin-bottom: 15px; }
-      select, input[type="text"], input[type="date"] {
-          padding: 6px;
-          border: 1px solid #ccc;
-          border-radius: 3px;
-      }
-      .select2-container { width: 100% !important; }
-      label { font-weight: bold; }
-      .box h3 {
-          color: #666;
-          border-bottom: 1px solid #ddd;
-          padding-bottom: 5px;
-      }
-  </style>
+<!--  <style>-->
+<!--      .width-100 { width: 100%; }-->
+<!--      .inline-flex { display: flex; align-items: center; }-->
+<!--      .box { margin-bottom: 15px; }-->
+<!--      select, input[type="text"], input[type="date"] {-->
+<!--          padding: 6px;-->
+<!--          border: 1px solid #ccc;-->
+<!--          border-radius: 3px;-->
+<!--      }-->
+<!--      .select2-container { width: 100% !important; }-->
+<!--      label { font-weight: bold; }-->
+<!--      .box h3 {-->
+<!--          color: #666;-->
+<!--          border-bottom: 1px solid #ddd;-->
+<!--          padding-bottom: 5px;-->
+<!--      }-->
+<!--  </style>-->
 <% end %>

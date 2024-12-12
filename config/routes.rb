@@ -1,28 +1,31 @@
-RedmineApp::Application.routes.draw do
-  # Глобальные маршруты
+Rails.application.routes.draw do
+  # Глобальные маршруты отчетов
   resources :reports do
     member do
-      patch :approve
+      patch 'approve'
     end
     collection do
-      get :load_project_versions
-      get :load_project_issues     # новый маршрут для загрузки задач
+      get 'load_project_versions'
+    end
+
+    # Маршруты для работы с задачами отчета
+    resources :report_issues, only: [:index] do
+      collection do
+        get 'search'
+        post 'add_issues'
+        delete 'remove_issue'
+      end
     end
   end
 
-  # Маршруты в контексте проекта
+  # Маршруты отчетов в контексте проекта
   resources :projects do
     resources :reports do
       member do
-        patch :approve
+        patch 'approve'
       end
-    end
-
-    # Новые маршруты для работы с задачами
-    resources :issues, only: [:create] do
       collection do
-        get :table_data    # для получения данных таблицы
-        get :statuses     # для получения списка статусов при создании задачи
+        get 'load_project_versions'
       end
     end
   end

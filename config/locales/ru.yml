@@ -41,9 +41,9 @@ ru:
   field_created_at: 'Создано'
   field_updated_at: 'Обновлено'
   label_subtask_custom_field: "Поле для подзадачи"
-  button_show_issues_table: "Показать таблицу задач"
+
   button_create_issue: "Создать задачу"
-  label_new_issue: "Новая задача"
+
 
 
   # Заголовки таблицы
@@ -55,3 +55,42 @@ ru:
   label_issue_due_date: "Срок завершения"
   label_issue_parent: "Родительская задача"
   label_issue_subtask: "Подзадача"
+
+  label_custom_field_settings: "Настройки кастомных полей"
+  label_custom_field: "Кастомное поле для отчетов"
+  label_custom_field_name: "Отображаемое название поля"
+  text_custom_field_info: "Выберите кастомное поле, которое будет отображаться в таблице задач"
+  text_custom_field_name_info: "Укажите, как будет называться колонка с кастомным полем в таблице"
+
+  button_new_issue: "Создать задачу"
+  button_show_issues_table: "Показать таблицу задач"
+
+  # Сообщения
+  notice_issue_created: "Задача успешно создана"
+  error_issue_not_created: "Ошибка при создании задачи"
+
+  # Заголовки таблицы
+  field_parent_issue: "Родительская задача"
+  field_custom_field_value: "Кастомное поле"
+
+  # Модальное окно
+  label_new_issue: "Создание новой задачи"
+  button_create: "Создать"
+  button_cancel: "Отмена"
+
+  label_report_issues: "Задачи в отчете"
+  button_add_issues: "Добавить задачи"
+  label_add_issues_to_report: "Добавление задач в отчет"
+  button_add_selected: "Добавить выбранные"
+  label_search_issues: "Поиск задач по номеру или теме"
+
+  # Сообщения
+  text_no_issues_selected: "Не выбрано ни одной задачи"
+  text_confirm_remove_issue: "Вы уверены, что хотите удалить эту задачу из отчета?"
+  error_adding_issues: "Ошибка при добавлении задач"
+  error_removing_issue: "Ошибка при удалении задачи"
+
+  # Подсказки
+  text_search_min_chars: "Введите минимум 2 символа для поиска"
+  text_no_issues_found: "Задачи не найдены"
+  text_loading: "Загрузка..."
