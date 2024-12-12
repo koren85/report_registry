@@ -71,3 +71,19 @@
 .form-actions button {
     margin-left: 10px;
 }
+
+.version-notice {
+    color: #666;
+    font-size: 0.9em;
+    margin-top: 5px;
+    font-style: italic;
+}
+
+.modal select:disabled {
+    background-color: #f5f5f5;
+    cursor: not-allowed;
+}
+
+.modal .form-field {
+    margin-bottom: 15px;
+}

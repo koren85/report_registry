@@ -10,17 +10,23 @@ class IssuesController < ApplicationController
     render json: @issues.select(:id, :subject)
   end
 
+  def available_assignees
+    @project = Project.find(params[:project_id])
+    role_id = Setting.plugin_report_registry['assignee_role_id']
+
+    users = @project.users_by_role[Role.find(role_id)].to_a
+
+    render json: users.map { |u| { id: u.id, name: u.name } }
+  end
+
   # Метод для получения данных таблицы с сортировкой
   def table_data
     sort_init 'id', 'asc'
     sort_update %w(id subject status_id fixed_version_id start_date due_date parent_id)
 
     @issues = @project.issues
-                     .includes(:status, :fixed_version, :parent)
-                     .order(sort_clause)
-
-    # Получаем ID кастомного поля "подзадача" из настроек плагина
-    subtask_field_id = Setting.plugin_report_registry['subtask_field_id']
+                      .includes(:status, :fixed_version, :parent)
+                      .order(sort_clause)
 
     issues_data = @issues.map do |issue|
       {
@@ -31,7 +37,7 @@ class IssuesController < ApplicationController
         start_date: issue.start_date,
         due_date: issue.due_date,
         parent_issue: issue.parent.try(:subject),
-        subtask: subtask_field_id ? issue.custom_field_value(subtask_field_id) : nil
+        subtask: issue.custom_field_value(Setting.plugin_report_registry['subtask_field_id'])
       }
     end
 
@@ -46,10 +52,12 @@ class IssuesController < ApplicationController
 
   # Создание новой задачи
   def create
+    @project = Project.find(params[:project_id])
     @issue = Issue.new(issue_params)
     @issue.project = @project
     @issue.author = User.current
-    @issue.tracker ||= @project.trackers.first
+    @issue.tracker_id = Setting.plugin_report_registry['default_tracker_id']
+    @issue.status_id = Setting.plugin_report_registry['default_status_id']
 
     if @issue.save
       render json: {
@@ -61,8 +69,7 @@ class IssuesController < ApplicationController
           version: @issue.fixed_version.try(:name),
           start_date: @issue.start_date,
           due_date: @issue.due_date,
-          parent_issue: @issue.parent.try(:subject),
-          subtask: @issue.custom_field_value(Setting.plugin_report_registry['subtask_field_id'])
+          assigned_to: @issue.assigned_to.try(:name)
         }
       }
     else
@@ -70,7 +77,20 @@ class IssuesController < ApplicationController
     end
   end
 
+  def available_statuses
+    statuses = IssueStatus.all.map { |status| { id: status.id, name: status.name } }
+    render json: statuses
+  end
+
   private
+
+  def sort_column
+    %w[id subject status_id fixed_version_id start_date due_date parent_id].include?(params[:sort]) ? params[:sort] : 'id'
+  end
+
+  def sort_direction
+    %w[asc desc].include?(params[:direction]) ? params[:direction] : 'asc'
+  end
 
   def find_project
     @project = Project.find(params[:project_id])
@@ -79,14 +99,7 @@ class IssuesController < ApplicationController
   end
 
   def issue_params
-    params.require(:issue).permit(
-      :subject,
-      :status_id,
-      :fixed_version_id,
-      :start_date,
-      :due_date,
-      :parent_id,
-      custom_field_values: [Setting.plugin_report_registry['subtask_field_id']]
-    )
+    params.require(:issue).permit(:subject, :assigned_to_id, :fixed_version_id,
+                                  :start_date, :due_date)
   end
 end

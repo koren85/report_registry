@@ -1,9 +1,12 @@
 <div id="issues-table-container" style="display: none;" class="box">
   <div class="issues-table-header">
-    <button type="button" class="button" id="new-issue-btn">
+    <button type="button" class="button" id="new-issue-btn" disabled>
       <span class="icon icon-add"></span>
       Создать задачу
     </button>
+    <p class="project-notice" style="display: none; color: #666; font-size: 0.9em;">
+      Выберите проект для создания новой задачи
+    </p>
   </div>
 
   <table class="list issues-list">
@@ -33,8 +36,10 @@
     </div>
 
     <div class="form-field">
-      <label for="issue_status_id">Статус</label>
-      <select id="issue_status_id" name="issue[status_id]"></select>
+      <label for="issue_assigned_to_id">Назначена</label>
+      <select id="issue_assigned_to_id" name="issue[assigned_to_id]">
+        <option value="">--- Выберите исполнителя ---</option>
+      </select>
     </div>
 
     <div class="form-field">
@@ -58,8 +63,9 @@
     </div>
   </form>
 </div>
+<!--</div>-->
 
 <% content_for :header_tags do %>
   <%= javascript_include_tag 'issues_table', plugin: 'report_registry' %>
-<%=  stylesheet_link_tag('issues_table', plugin: 'report_registry') %>
-<%end%>
+  <%= stylesheet_link_tag('issues_table', plugin: 'report_registry') %>
+<% end %>

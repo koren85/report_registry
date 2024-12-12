@@ -5,6 +5,8 @@ require File.expand_path('../lib/project_patch', __FILE__)
 
 require_dependency 'reports_hook_listener'
 
+Rails.application.config.eager_load_paths += Dir[File.join(File.dirname(__FILE__), 'app', '**')]
+
 Redmine::Plugin.register :report_registry do
   name 'Report Registry Plugin'
   author 'Your Name'
@@ -23,6 +25,13 @@ Redmine::Plugin.register :report_registry do
 
   # Регистрация модуля в настройках проекта
   project_module :report_registry do
+    # Добавляем разрешения для работы с задачами
+    permission :view_report_issues, {
+      'report_registry/issues': [:index, :table_data]
+    }
+    permission :manage_report_issues, {
+      'report_registry/issues': [:create, :available_assignees]
+    }
     permission :view_reports, { reports: [:index, :show] }
     permission :manage_reports, { reports: [:new, :create, :edit, :update, :destroy, :approve] }
     permission :view_reports_global, { reports: [:index] }, global: true

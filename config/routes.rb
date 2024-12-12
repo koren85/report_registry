@@ -6,23 +6,32 @@ RedmineApp::Application.routes.draw do
     end
     collection do
       get :load_project_versions
-      get :load_project_issues     # новый маршрут для загрузки задач
+      get :load_project_issues
+    end
+  end
+
+  resources :issues do
+    collection do
+      get 'available_statuses'
     end
   end
 
   # Маршруты в контексте проекта
   resources :projects do
-    resources :reports do
-      member do
-        patch :approve
+    scope module: 'report_registry' do
+      get 'available_assignees', to: 'issues#available_assignees'
+      get 'issues/table_data', to: 'issues#table_data'
+
+      resources :issues, only: [:create] do
+        collection do
+          get :statuses
+        end
       end
     end
 
-    # Новые маршруты для работы с задачами
-    resources :issues, only: [:create] do
-      collection do
-        get :table_data    # для получения данных таблицы
-        get :statuses     # для получения списка статусов при создании задачи
+    resources :reports do
+      member do
+        patch :approve
       end
     end
   end
