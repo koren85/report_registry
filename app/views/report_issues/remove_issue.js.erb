@@ -1,1 +1,16 @@
-$("#report-issues-body").html("<%= j render(partial: 'report_issues/issues_list') %>");
+// Обновляем таблицу задач
+$("#report-issues-body").html("<%= j render 'report_issues/issues_list' %>");
+
+// Обновляем select2
+(function() {
+    var $issuesSelect = $('#issues-select');
+    var updatedIssues = <%= raw @report.issues.map { |i| { id: i.id, text: "#{i.id} - #{i.subject}" } }.to_json %>;
+
+    $issuesSelect.empty();
+    updatedIssues.forEach(function(issue) {
+        var option = new Option(issue.text, issue.id, true, true);
+        $issuesSelect.append(option);
+    });
+
+    $issuesSelect.trigger('change');
+})();

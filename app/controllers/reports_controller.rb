@@ -70,12 +70,17 @@ class ReportsController < ApplicationController
               end
 
     @report.created_by = User.current.id
+    @report.updated_by = User.current.id
+    @report.updated_at = Time.current
 
     if @report.save
       flash[:notice] = l(:notice_successful_create)
-      redirect_to(@project ? project_reports_path(@project) : reports_path, notice: 'Отчёт успешно создан')
-      # redirect_to(params[:from_global] == 'true' ? reports_path : project_reports_path(@report.project))
 
+      if params[:save_and_continue]
+        redirect_to edit_report_path(@report)
+      else
+        redirect_to(@project ? project_reports_path(@project) : reports_path)
+      end
     else
       load_versions
       render :new
@@ -106,16 +111,21 @@ class ReportsController < ApplicationController
 
   def update
     @report.assign_attributes(report_params)
-    @report.updated_by = User.current.id  # Добавляем текущего пользователя как обновившего
+    @report.updated_by = User.current.id
+    @report.updated_at = Time.current
 
     if @report.save
       flash[:notice] = l(:notice_successful_update)
-      if params[:from_global] == 'true'
-        redirect_to reports_path
+
+      if params[:save_and_continue]
+        redirect_to edit_report_path(@report)
       else
-        redirect_to project_reports_path(@report.project)
+        if params[:from_global] == 'true'
+          redirect_to reports_path
+        else
+          redirect_to project_reports_path(@report.project)
+        end
       end
-      #  redirect_to(params[:from_global] == 'true' ? reports_path : project_reports_path(@report.project))
     else
       load_project_and_versions
       @from_global = params[:from_global]

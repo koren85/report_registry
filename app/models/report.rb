@@ -41,6 +41,10 @@ class Report < ActiveRecord::Base
   private
 
   def set_updater
-    self.updated_by = User.current.id if changed?
+    if changed? || issue_reports.loaded? && issue_reports.any? { |ir| ir.changed? || ir.marked_for_destruction? }
+      self.updated_by = User.current.id
+      # Используем updated_at вместо updated_on
+      self.updated_at = Time.current
+    end
   end
 end

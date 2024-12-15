@@ -1,2 +1,25 @@
-hideModal();
+// Обновляем таблицу задач
 $("#report-issues-body").html("<%= j render 'report_issues/issues_list' %>");
+
+// Обновляем select2
+(function() {
+    var $issuesSelect = $('#issues-select');
+    var updatedIssues = <%= raw @report.issues.map { |i| { id: i.id, text: "#{i.id} - #{i.subject}" } }.to_json %>;
+
+    // Очищаем текущий выбор
+    $issuesSelect.val(null).trigger('change');
+
+    // Добавляем все задачи
+    updatedIssues.forEach(function(issue) {
+        if ($issuesSelect.find("option[value='" + issue.id + "']").length === 0) {
+            var option = new Option(issue.text, issue.id, true, true);
+            $issuesSelect.append(option);
+        }
+    });
+
+    // Устанавливаем значения и триггерим изменение
+    $issuesSelect.val(updatedIssues.map(function(i) { return i.id; })).trigger('change');
+
+    // Закрываем модальное окно
+    hideModal();
+})();

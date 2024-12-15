@@ -47,13 +47,38 @@ class ReportIssuesController < ApplicationController
 
   def add_issues
     if params[:issue_ids].present?
-      @issues = Issue.where(id: params[:issue_ids])
-      @report.issues << @issues
-    end
+      begin
+        # Находим только те задачи, которых еще нет в отчете
+        new_issue_ids = params[:issue_ids] - @report.issue_ids.map(&:to_s)
 
-    respond_to do |format|
-      format.html { redirect_to edit_report_path(@report) }
-      format.js   # будет использовать add_issues.js.erb
+        if new_issue_ids.any?
+          @issues = Issue.where(id: new_issue_ids)
+          @report.issues << @issues
+
+          # Обновляем информацию об изменении отчета
+          @report.updated_by = User.current.id
+          # Используем touch для обновления updated_at
+          @report.touch
+          @report.save
+        end
+
+        # Перезагружаем отчет для получения актуальных данных
+        @report.reload
+
+        respond_to do |format|
+          format.html { redirect_to edit_report_path(@report) }
+          format.js
+        end
+      rescue => e
+        Rails.logger.error "Error adding issues: #{e.message}\n#{e.backtrace.join("\n")}"
+        respond_to do |format|
+          format.html do
+            flash[:error] = l(:error_adding_issues)
+            redirect_to edit_report_path(@report)
+          end
+          format.js { render js: "alert('#{l(:error_adding_issues)}');", status: :unprocessable_entity }
+        end
+      end
     end
   end
 
@@ -61,10 +86,17 @@ class ReportIssuesController < ApplicationController
     @issue_report = @report.issue_reports.find_by!(issue_id: params[:issue_id])
 
     if @issue_report.destroy
+      # Обновляем информацию об изменении отчета
+      @report.updated_by = User.current.id
+      # Используем touch для обновления updated_at
+      @report.touch
+      @report.save
+
+      @report.reload
+
       respond_to do |format|
         format.html { redirect_to edit_report_path(@report) }
-        format.js   # Будет использовать remove_issue.js.erb
-        format.json { render json: { success: true } }
+        format.js
       end
     else
       respond_to do |format|
@@ -73,7 +105,6 @@ class ReportIssuesController < ApplicationController
           redirect_to edit_report_path(@report)
         }
         format.js { render js: "alert('#{l(:error_removing_issue)}');" }
-        format.json { render json: { error: l(:error_removing_issue) }, status: :unprocessable_entity }
       end
     end
   rescue ActiveRecord::RecordNotFound => e
@@ -83,7 +114,6 @@ class ReportIssuesController < ApplicationController
         redirect_to edit_report_path(@report)
       }
       format.js { render js: "alert('#{l(:error_issue_not_found)}');" }
-      format.json { render json: { error: l(:error_issue_not_found) }, status: :not_found }
     end
   end
 

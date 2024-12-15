@@ -98,3 +98,6 @@ ru:
 
   error_issue_not_found: "Задача не найдена"
   label_no_issues: "Нет добавленных задач"
+  button_save_and_continue: "Сохранить и продолжить"
+  button_back_to_list: "Вернуться к списку"
+

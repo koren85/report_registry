@@ -123,11 +123,17 @@
     <h3><%= l(:field_issues) %></h3>
     <div class="issues-selection-container">
       <p>
-        <%= f.collection_select :issue_ids,
-                                @issues || [],
-                                :id, :subject,
-                                { include_blank: false },
-                                { multiple: true, class: 'select2', id: 'issues-select', style: 'width: 100%;' } %>
+        <%= f.select :issue_ids,
+                     (@report.issues || []).map { |i| [i.to_s, i.id] },
+                     {},
+                     { multiple: true,
+                       class: 'select2',
+                       id: 'issues-select',
+                       style: 'width: 100%;',
+                       data: {
+                         'pre': (@report.issues || []).map { |i| { id: i.id, text: "#{i.id} - #{i.subject}" } }
+                       }
+                     } %>
       </p>
     </div>
 
@@ -135,8 +141,21 @@
   </div>
 
   <div class="box form-actions">
+
     <p style="margin-bottom: 0;">
-      <%= f.submit l(:button_save), class: 'button-positive', data: { disable_with: l(:button_submitting) } %>
+      <%= f.submit l(:button_save),
+                   name: 'save_and_close',
+                   class: 'button-positive',
+                   data: { disable_with: l(:button_submitting) } %>
+
+      <%= f.submit l(:button_save_and_continue),
+                   name: 'save_and_continue',
+                   class: 'button',
+                   data: { disable_with: l(:button_submitting) } %>
+
+      <%= link_to l(:button_back_to_list),
+                  (@project ? project_reports_path(@project) : reports_path),
+                  class: 'button' %>
     </p>
   </div>
 <% end %>
@@ -147,21 +166,4 @@
   <%= javascript_include_tag 'common', plugin: 'report_registry' %>
   <%= javascript_include_tag 'project_versions', plugin: 'report_registry' %>
   <%= javascript_include_tag 'date_period_handler', plugin: 'report_registry' %>
-<!--  <style>-->
-<!--      .width-100 { width: 100%; }-->
-<!--      .inline-flex { display: flex; align-items: center; }-->
-<!--      .box { margin-bottom: 15px; }-->
-<!--      select, input[type="text"], input[type="date"] {-->
-<!--          padding: 6px;-->
-<!--          border: 1px solid #ccc;-->
-<!--          border-radius: 3px;-->
-<!--      }-->
-<!--      .select2-container { width: 100% !important; }-->
-<!--      label { font-weight: bold; }-->
-<!--      .box h3 {-->
-<!--          color: #666;-->
-<!--          border-bottom: 1px solid #ddd;-->
-<!--          padding-bottom: 5px;-->
-<!--      }-->
-<!--  </style>-->
 <% end %>
