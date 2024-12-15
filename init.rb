@@ -23,8 +23,11 @@ Redmine::Plugin.register :report_registry do
 
   # Регистрация модуля в настройках проекта
   project_module :report_registry do
-    permission :view_reports, { reports: [:index, :show] }
-    permission :manage_reports, { reports: [:new, :create, :edit, :update, :destroy, :approve] }
+    permission :view_reports, { reports: [:index, :show],
+                                report_issues: [:index, :modal_issues] }
+    permission :manage_reports, { reports: [:new, :create, :edit, :update, :destroy, :approve],
+                                  report_issues: [:modal_issues, :add_issues, :search, :remove_issue] }
+    permission :approve_reports, { reports: [:approve] }
     permission :view_reports_global, { reports: [:index] }, global: true
     permission :manage_reports_global, { reports: [:new, :create] }, global: true
   end

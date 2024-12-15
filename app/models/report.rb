@@ -11,13 +11,32 @@ class Report < ActiveRecord::Base
   has_many :issue_reports, dependent: :destroy
   has_many :issues, through: :issue_reports
 
-
-
-
-  # Пример валидаций
+  # Валидации
   validates :name, presence: true, length: { maximum: 254 }
   validates :project_id, presence: true
   validates :status, inclusion: { in: %w[черновик в_работе сформирован утвержден] }
+
+  # Методы проверки прав
+  def visible?(user=User.current)
+    return true if user.admin?
+
+    if project
+      user.allowed_to?(:view_reports, project) ||
+        user.allowed_to?(:manage_reports, project)
+    else
+      user.allowed_to_globally?(:manage_reports_global)
+    end
+  end
+
+  def editable?(user=User.current)
+    return true if user.admin?
+
+    if project
+      user.allowed_to?(:manage_reports, project)
+    else
+      user.allowed_to_globally?(:manage_reports_global)
+    end
+  end
 
   private
 

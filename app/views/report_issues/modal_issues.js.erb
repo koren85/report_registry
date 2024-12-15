@@ -1,0 +1,12 @@
+(function() {
+    var modal = $('#ajax-modal');
+    modal.html("<%= escape_javascript(render partial: 'modal_issues') %>");
+    showModal("ajax-modal", "<%= l(:label_add_issues_to_report) %>");
+
+    // Инициализация обработчиков событий после загрузки модального окна
+    var toggleAll = $('#check_all');
+    toggleAll.on('change', function() {
+        var isChecked = $(this).prop('checked');
+        $('.issues-selection input[type="checkbox"]').prop('checked', isChecked);
+    });
+})();

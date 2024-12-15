@@ -94,3 +94,7 @@ ru:
   text_search_min_chars: "Введите минимум 2 символа для поиска"
   text_no_issues_found: "Задачи не найдены"
   text_loading: "Загрузка..."
+
+
+  error_issue_not_found: "Задача не найдена"
+  label_no_issues: "Нет добавленных задач"

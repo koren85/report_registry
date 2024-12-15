@@ -1,12 +1,14 @@
 <div class="report-issues-wrapper">
-  <!-- Таблица задач отчета -->
   <div id="issues-table-container" class="box">
     <div class="issues-table-header">
       <h3><%= l(:label_report_issues) %></h3>
-      <button type="button" class="button" id="add-issues-btn">
-        <span class="icon icon-add"></span>
-        <%= l(:button_add_issues) %>
-      </button>
+      <% if @project %>
+        <%= link_to l(:button_add_issues),
+                    modal_issues_report_report_issues_path(@report || @project.reports.new),
+                    class: 'button icon icon-add',
+                    remote: true,
+                    'data-modal': true %>
+      <% end %>
     </div>
 
     <table class="list issues-list">
@@ -20,86 +22,21 @@
         <th class="sortable" data-sort="start_date"><%= l(:field_start_date) %></th>
         <th class="sortable" data-sort="due_date"><%= l(:field_due_date) %></th>
         <th class="sortable" data-sort="parent_id"><%= l(:field_parent_issue) %></th>
-        <th class="sortable" data-sort="custom_field_value"><%= Setting.plugin_report_registry['custom_field_name'] %></th>
+        <th class="sortable" data-sort="custom_field_value">
+          <%= Setting.plugin_report_registry['custom_field_name'] %>
+        </th>
         <th class="buttons"></th>
       </tr>
       </thead>
       <tbody id="report-issues-body">
+      <%= render 'report_issues/issues_list' if @report&.persisted? %>
       </tbody>
     </table>
   </div>
 </div>
 
-<!-- Модальные элементы (вынесены за пределы основного контейнера) -->
-<% content_for :body_bottom do %>
-  <!-- Модальный оверлей -->
-  <div id="modal-overlay" class="modal-overlay"></div>
-
-  <!-- Модальное окно для добавления задач -->
-  <div id="add-issues-modal" class="modal" role="dialog" aria-labelledby="modal-title">
-    <!-- Заголовок -->
-    <div class="modal-header">
-      <h3 class="modal-title" id="modal-title"><%= l(:label_add_issues_to_report) %></h3>
-      <button type="button" class="close-modal" title="<%= l(:button_close) %>" aria-label="<%= l(:button_close) %>">&times;</button>
-    </div>
-
-    <!-- Основной контент -->
-    <div class="modal-content">
-      <!-- Поле поиска -->
-      <div class="search-box">
-        <label for="issues-search" class="visually-hidden"><%= l(:label_search_issues) %></label>
-        <input type="text"
-               id="issues-search"
-               class="search-input"
-               placeholder="<%= l(:label_search_issues) %>"
-               autocomplete="off"
-               aria-label="<%= l(:label_search_issues) %>">
-      </div>
-
-      <!-- Таблица результатов поиска -->
-      <div class="issues-selection">
-        <table class="list issues-search-list">
-          <thead>
-          <tr>
-            <th class="checkbox-column">
-              <input type="checkbox"
-                     id="select-all-issues"
-                     title="<%= l(:button_check_all) %>"
-                     aria-label="<%= l(:button_check_all) %>">
-            </th>
-            <th class="id">#</th>
-            <th class="subject"><%= l(:field_subject) %></th>
-            <th class="status"><%= l(:field_status) %></th>
-            <th class="version"><%= l(:field_version) %></th>
-            <th class="start-date"><%= l(:field_start_date) %></th>
-            <th class="due-date"><%= l(:field_due_date) %></th>
-          </tr>
-          </thead>
-          <tbody id="issues-search-results">
-          <tr>
-            <td colspan="7" class="text-center">
-              <%= l(:text_search_issues_help) %>
-            </td>
-          </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- Футер с кнопками -->
-    <div class="modal-footer">
-      <button type="button" class="button-positive" id="add-selected-issues">
-        <span class="icon icon-add"></span>
-        <%= l(:button_add_selected) %>
-      </button>
-      <button type="button" class="button" id="cancel-add-issues">
-        <%= l(:button_cancel) %>
-      </button>
-    </div>
-  </div>
-<% end %>
-
 <% content_for :header_tags do %>
   <%= javascript_include_tag 'issues_table', plugin: 'report_registry' %>
   <%= stylesheet_link_tag 'issues_table', plugin: 'report_registry' %>
+  <%= stylesheet_link_tag 'modal_window', plugin: 'report_registry' %>
 <% end %>

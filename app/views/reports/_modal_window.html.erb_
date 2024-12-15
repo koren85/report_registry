@@ -1,0 +1,49 @@
+<div id="modal-overlay" class="modal-overlay" aria-hidden="true"></div>
+
+<div id="add-issues-modal" class="modal" role="dialog" aria-labelledby="modal-title" aria-modal="true">
+  <div class="modal-header">
+    <h3 class="modal-title" id="modal-title"><%= l(:label_add_issues_to_report) %></h3>
+    <button type="button" class="close-modal" aria-label="<%= l(:button_close) %>">&times;</button>
+  </div>
+
+  <div class="modal-content">
+    <div class="search-box">
+      <input type="text"
+             id="issues-search"
+             class="search-input"
+             placeholder="<%= l(:label_search_issues) %>"
+             aria-label="<%= l(:label_search_issues) %>"
+             autocomplete="off">
+    </div>
+
+    <div class="issues-selection">
+      <table class="list issues-search-list">
+        <thead>
+        <tr>
+          <th class="checkbox-column">
+            <input type="checkbox" id="select-all-issues" aria-label="<%= l(:button_check_all) %>">
+          </th>
+          <th class="id">#</th>
+          <th class="subject"><%= l(:field_subject) %></th>
+          <th class="status"><%= l(:field_status) %></th>
+          <th class="version"><%= l(:field_version) %></th>
+          <th class="start-date"><%= l(:field_start_date) %></th>
+          <th class="due-date"><%= l(:field_due_date) %></th>
+        </tr>
+        </thead>
+        <tbody id="issues-search-results">
+        <!-- Search results will be dynamically inserted here -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="modal-footer">
+    <button type="button" class="button-positive" id="add-selected-issues">
+      <%= l(:button_add_selected) %>
+    </button>
+    <button type="button" class="button" id="cancel-add-issues">
+      <%= l(:button_cancel) %>
+    </button>
+  </div>
+</div>

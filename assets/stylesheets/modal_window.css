@@ -1,0 +1,14 @@
+.issues-selection {
+    max-height: 400px;
+    overflow-y: auto;
+    margin: 15px 0;
+}
+
+.search-box {
+    margin-bottom: 15px;
+}
+
+.search-box input {
+    width: 100%;
+    padding: 6px;
+}

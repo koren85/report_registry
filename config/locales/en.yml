@@ -1,3 +1,5 @@
 # English strings go here for Rails i18n
 en:
   # my_label: "My label"
+  error_loading_modal: "Error loading issues"
+  label_add_issues_to_report: "Add issues to report"
