@@ -110,7 +110,7 @@ class ReportsController < ApplicationController
   end
 
   def update
-    @report.assign_attributes(report_params)
+    @report.assign_attributes(report_params_with_unique_issues)
     @report.updated_by = User.current.id
     @report.updated_at = Time.current
 
@@ -163,9 +163,19 @@ class ReportsController < ApplicationController
     end
   end
 
+  def report_params_with_unique_issues
+    params_copy = report_params.dup
+    if params_copy[:issue_ids].present?
+      # Убираем дубликаты из массива issue_ids
+      params_copy[:issue_ids] = params_copy[:issue_ids].uniq
+    end
+    params_copy
+  end
+
   def report_params
-    params.require(:report).permit(:name, :period, :start_date, :end_date, :status, :total_hours,
-                                   :contract_number, :project_id, :version_id, issue_ids: [])
+    params.require(:report).permit(:name, :period, :start_date, :end_date, :status,
+                                   :total_hours, :contract_number, :project_id,
+                                   :version_id, issue_ids: [])
   end
 
   def find_report

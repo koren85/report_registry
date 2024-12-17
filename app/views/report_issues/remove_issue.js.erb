@@ -1,16 +1,21 @@
-// Обновляем таблицу задач
-$("#report-issues-body").html("<%= j render 'report_issues/issues_list' %>");
+// Удаляем строку из таблицы с анимацией
+$('#issue-row-<%= @issue_id %>').fadeOut('normal', function() {
+    $(this).remove();
+});
 
-// Обновляем select2
-(function() {
-    var $issuesSelect = $('#issues-select');
-    var updatedIssues = <%= raw @report.issues.map { |i| { id: i.id, text: "#{i.id} - #{i.subject}" } }.to_json %>;
+// Обновляем select2 только для удаленной задачи
+var $issuesSelect = $('#issues-select');
+$issuesSelect.find('option[value="<%= @issue_id %>"]').remove();
+$issuesSelect.trigger('change');
 
-    $issuesSelect.empty();
-    updatedIssues.forEach(function(issue) {
-        var option = new Option(issue.text, issue.id, true, true);
-        $issuesSelect.append(option);
-    });
+// Сбрасываем чекбокс "выбрать все" если он есть
+var selectAllCheckbox = document.getElementById('select-all-issues');
+if (selectAllCheckbox) {
+    selectAllCheckbox.checked = false;
+}
 
-    $issuesSelect.trigger('change');
-})();
+// Обновляем видимость кнопки массового удаления
+var deleteButton = document.getElementById('delete-selected-issues');
+if (deleteButton) {
+    deleteButton.style.display = 'none';
+}

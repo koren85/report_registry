@@ -101,3 +101,8 @@ ru:
   button_save_and_continue: "Сохранить и продолжить"
   button_back_to_list: "Вернуться к списку"
 
+  notice_successful_delete: "Задачи успешно удалены"
+  notice_unsuccessful_delete: "Не удалось удалить задачи"
+  notice_no_issues_selected: "Не выбраны задачи для удаления"
+
+  error_unable_delete: "Ошибка при удалении задач"

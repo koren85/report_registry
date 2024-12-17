@@ -1,0 +1,24 @@
+<% if @issue_ids.present? %>
+<% @issue_ids.each do |issue_id| %>
+// Удаляем строки из таблицы
+$('#issue-row-<%= issue_id %>').fadeOut('normal', function() {
+    $(this).remove();
+});
+
+// Обновляем select2
+var $issuesSelect = $('#issues-select');
+$issuesSelect.find('option[value="<%= issue_id %>"]').remove();
+<% end %>
+
+// Обновляем select2 после всех изменений
+$('#issues-select').trigger('change');
+
+// Сбрасываем состояние
+$('#select-all-issues').prop('checked', false);
+$('#delete-selected-issues').hide();
+
+// Показываем сообщение об успехе
+alert('<%= j l(:notice_successful_delete) %>');
+<% else %>
+alert('<%= j l(:notice_no_issues_selected) %>');
+<% end %>

@@ -5,10 +5,10 @@ class ReportIssuesController < ApplicationController
   before_action :authorize
 
   def modal_issues
-    @issues = @project.issues
-                      .where.not(id: @report.issue_ids)
-                      .includes(:status, :fixed_version)
-                      .limit(100)
+    @issues = available_project_issues
+                .where.not(id: @report.issue_ids)
+                .includes(:status, :fixed_version)
+                .limit(100)
 
     respond_to do |format|
       format.html { render partial: 'modal_issues' }
@@ -31,13 +31,15 @@ class ReportIssuesController < ApplicationController
   end
 
   def search
-    scope = @project.issues
-                    .includes(:status, :fixed_version)
-                    .where.not(id: @report.issue_ids)
+    scope = available_project_issues
+              .includes(:status, :fixed_version)
+              .where.not(id: @report.issue_ids)
 
     if params[:q].present?
-      scope = scope.where("CAST(issues.id AS TEXT) LIKE :q OR LOWER(issues.subject) LIKE :q",
-                          q: "%#{params[:q].downcase}%")
+      scope = scope.where(
+        "CAST(issues.id AS TEXT) LIKE :q OR LOWER(issues.subject) LIKE :q",
+        q: "%#{params[:q].downcase}%"
+      )
     end
 
     @issues = scope.limit(50)
@@ -49,20 +51,18 @@ class ReportIssuesController < ApplicationController
     if params[:issue_ids].present?
       begin
         # Находим только те задачи, которых еще нет в отчете
-        new_issue_ids = params[:issue_ids] - @report.issue_ids.map(&:to_s)
+        new_issue_ids = params[:issue_ids].uniq - @report.issue_ids.map(&:to_s)
 
         if new_issue_ids.any?
           @issues = Issue.where(id: new_issue_ids)
           @report.issues << @issues
-
-          # Обновляем информацию об изменении отчета
-          @report.updated_by = User.current.id
-          # Используем touch для обновления updated_at
-          @report.touch
-          @report.save
         end
 
-        # Перезагружаем отчет для получения актуальных данных
+        # Обновляем информацию об изменении отчета
+        @report.updated_by = User.current.id
+        @report.updated_at = Time.current
+        @report.save
+
         @report.reload
 
         respond_to do |format|
@@ -82,43 +82,59 @@ class ReportIssuesController < ApplicationController
     end
   end
 
+  # app/controllers/report_issues_controller.rb
+
   def remove_issue
-    @issue_report = @report.issue_reports.find_by!(issue_id: params[:issue_id])
+    @issue = Issue.find(params[:id])
+    @issue_id = @issue.id
 
-    if @issue_report.destroy
-      # Обновляем информацию об изменении отчета
-      @report.updated_by = User.current.id
-      # Используем touch для обновления updated_at
+    if @report.issue_reports.where(issue_id: @issue_id).destroy_all
       @report.touch
-      @report.save
-
-      @report.reload
-
       respond_to do |format|
-        format.html { redirect_to edit_report_path(@report) }
         format.js
       end
     else
       respond_to do |format|
-        format.html {
-          flash[:error] = l(:error_removing_issue)
-          redirect_to edit_report_path(@report)
-        }
-        format.js { render js: "alert('#{l(:error_removing_issue)}');" }
+        format.js { render js: "alert('#{l(:error_unable_delete)}');" }
       end
-    end
-  rescue ActiveRecord::RecordNotFound => e
-    respond_to do |format|
-      format.html {
-        flash[:error] = l(:error_issue_not_found)
-        redirect_to edit_report_path(@report)
-      }
-      format.js { render js: "alert('#{l(:error_issue_not_found)}');" }
     end
   end
 
+  def remove_issues
+    @issue_ids = params[:issue_ids]
+
+    if @issue_ids.present?
+      begin
+        @report.issue_reports.where(issue_id: @issue_ids).destroy_all
+        @report.touch
+
+        respond_to do |format|
+          format.js
+        end
+      rescue => e
+        Rails.logger.error "Error in remove_issues: #{e.message}\n#{e.backtrace.join("\n")}"
+        respond_to do |format|
+          format.js { render js: "alert('#{j l(:error_unable_delete)}');" }
+        end
+      end
+    else
+      respond_to do |format|
+        format.js { render js: "alert('#{j l(:notice_no_issues_selected)}');" }
+      end
+    end
+  end
+
+
+
+
+
   private
 
+  def available_project_issues
+    # Получаем ID всех подпроектов включая текущий проект
+    project_ids = @project.self_and_descendants.pluck(:id)
+    Issue.where(project_id: project_ids)
+  end
 
   def find_report
     @report = Report.find(params[:report_id])
@@ -142,19 +158,7 @@ class ReportIssuesController < ApplicationController
     end
   end
 
-  def issues_to_json(issues)
-    issues.map { |issue| issue_to_json(issue) }
-  end
-
-  def search_issues_to_json(issues)
-    issues.map { |issue| search_issue_to_json(issue) }
-  end
-
-  def issue_to_json(issue)
-    custom_field = Setting.plugin_report_registry['custom_field_id']
-    custom_value = issue.custom_field_values
-                        .find { |v| v.custom_field_id.to_s == custom_field.to_s }&.value
-
+  def search_issue_to_json(issue)
     {
       id: issue.id,
       subject: issue.subject,
@@ -162,22 +166,36 @@ class ReportIssuesController < ApplicationController
       project: issue.project.name,
       version: issue.fixed_version&.name,
       start_date: issue.start_date,
-      due_date: issue.due_date,
-      parent_issue: issue.parent&.subject,
-      custom_field_value: custom_value
-    }
-  end
-
-  def search_issue_to_json(issue)
-    {
-      id: issue.id,
-      subject: issue.subject,
-      status: issue.status.name,
-      version: issue.fixed_version&.name,
-      start_date: issue.start_date,
       due_date: issue.due_date
     }
   end
+
+  def search_issues_to_json(issues)
+    issues.map { |issue| search_issue_to_json(issue) }
+  end
+
+  # def search_issue_to_json(issue)
+  #   {
+  #     id: issue.id,
+  #     subject: issue.subject,
+  #     status: issue.status.name,
+  #     version: issue.fixed_version&.name,
+  #     start_date: issue.start_date,
+  #     due_date: issue.due_date,
+  #     project: issue.project.name  # Добавляем название проекта в результаты поиска
+  #   }
+  # end
+
+  # def search_issue_to_json(issue)
+  #   {
+  #     id: issue.id,
+  #     subject: issue.subject,
+  #     status: issue.status.name,
+  #     version: issue.fixed_version&.name,
+  #     start_date: issue.start_date,
+  #     due_date: issue.due_date
+  #   }
+  # end
 
   def sort_clause
     if params[:sort].present? && params[:direction].present?

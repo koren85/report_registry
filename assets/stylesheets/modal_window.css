@@ -12,3 +12,60 @@
     width: 100%;
     padding: 6px;
 }
+
+
+  .issues-selection {
+      max-height: 400px;
+      overflow-y: auto;
+      margin: 1em 0;
+  }
+
+.issues-selection table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.issues-selection th,
+.issues-selection td {
+    padding: 6px 8px;
+    text-align: left;
+    vertical-align: middle;
+}
+
+.issues-selection th {
+    background-color: #f6f6f6;
+    border-bottom: 1px solid #d7d7d7;
+}
+
+.issues-selection td {
+    border-bottom: 1px solid #e7e7e7;
+}
+
+.issues-selection .checkbox {
+    text-align: center;
+}
+
+.issues-selection .id {
+    text-align: center;
+}
+
+.issues-selection .start_date,
+.issues-selection .due_date {
+    text-align: center;
+    white-space: nowrap;
+}
+
+.issues-selection tr:hover td {
+    background-color: #f6f6f6;
+}
+
+.search-box {
+    margin-bottom: 1em;
+}
+
+.search-box input {
+    width: 100%;
+    padding: 6px;
+    border: 1px solid #d7d7d7;
+    border-radius: 3px;
+}

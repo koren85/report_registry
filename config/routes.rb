@@ -1,16 +1,17 @@
 # config/routes.rb
 Rails.application.routes.draw do
-  # Глобальные маршруты отчетов
   resources :reports do
     resources :report_issues, only: [:index] do
       collection do
         get 'modal_issues'
         get 'search'
         post 'add_issues'
+        delete 'remove_issues'
+      end
+      member do
         delete 'remove_issue'
       end
     end
-
     member do
       patch 'approve'
     end
@@ -19,7 +20,6 @@ Rails.application.routes.draw do
     end
   end
 
-  # Маршруты отчетов в контексте проекта
   resources :projects do
     resources :reports do
       resources :report_issues, only: [:index] do
@@ -27,10 +27,12 @@ Rails.application.routes.draw do
           get 'modal_issues'
           get 'search'
           post 'add_issues'
+          delete 'remove_issues'
+        end
+        member do
           delete 'remove_issue'
         end
       end
-
       member do
         patch 'approve'
       end

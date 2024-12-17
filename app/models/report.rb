@@ -8,13 +8,17 @@ class Report < ActiveRecord::Base
   belongs_to :project
   belongs_to :version, optional: true
 
-  has_many :issue_reports, dependent: :destroy
-  has_many :issues, through: :issue_reports
+  # Добавляем валидацию уникальности связи issue_reports
+  has_many :issue_reports, -> { distinct }, dependent: :destroy
+  has_many :issues, -> { distinct }, through: :issue_reports
+
 
   # Валидации
   validates :name, presence: true, length: { maximum: 254 }
   validates :project_id, presence: true
   validates :status, inclusion: { in: %w[черновик в_работе сформирован утвержден] }
+
+
 
   # Методы проверки прав
   def visible?(user=User.current)
