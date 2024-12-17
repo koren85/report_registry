@@ -27,7 +27,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    deleteButton?.addEventListener('click', () => {
+    deleteButton?.addEventListener('click', (e) => {
+        e.preventDefault(); // Предотвращаем стандартное поведение
+
         const selectedIds = Array.from(issueCheckboxes)
             .filter(checkbox => checkbox.checked)
             .map(checkbox => checkbox.value);
@@ -42,13 +44,20 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const reportId = deleteButton.dataset.reportId;
+        const token = document.querySelector('meta[name="csrf-token"]').content;
 
-        // Используем стандартный Rails UJS подход
         $.ajax({
             url: `/reports/${reportId}/report_issues/remove_issues`,
             type: 'DELETE',
             data: { issue_ids: selectedIds },
-            dataType: 'script'
+            dataType: 'script',
+            headers: {
+                'X-CSRF-Token': token
+            }
+        }).fail(function() {
+            alert('Произошла ошибка при удалении задач');
         });
+
+        return false; // Дополнительно предотвращаем действие по умолчанию
     });
 });

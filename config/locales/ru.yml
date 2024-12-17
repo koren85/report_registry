@@ -106,3 +106,5 @@ ru:
   notice_no_issues_selected: "Не выбраны задачи для удаления"
 
   error_unable_delete: "Ошибка при удалении задач"
+  field_actions: 'Действия'
+  button_delete_selected: 'Удалить выбранное'
