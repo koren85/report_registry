@@ -53,3 +53,18 @@ table.list.reports th a.desc::after {
     font-weight: bold;
 }
 
+/*# assets/stylesheets/report_registry.css*/
+      /* Добавить в существующий файл стилей */
+  .report-item {
+      margin: 2px 0;
+      padding: 2px 0;
+  }
+
+.report-link {
+    margin-right: 5px;
+}
+
+.report-details {
+    color: #666;
+    font-size: 0.9em;
+}

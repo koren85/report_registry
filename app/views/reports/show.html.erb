@@ -1,0 +1,44 @@
+<!--# app/views/reports/show.html.erb-->
+<div class="contextual">
+  <% if @report.editable? %>
+    <%= link_to l(:button_edit), edit_project_report_path(@project, @report), class: 'icon icon-edit' %>
+    <%= link_to l(:button_delete), project_report_path(@project, @report),
+                method: :delete,
+                data: { confirm: l(:text_are_you_sure) },
+                class: 'icon icon-del' %>
+  <% end %>
+</div>
+
+<h2><%= h(@report.name) %></h2>
+
+<div class="box">
+  <table class="attributes">
+    <tr>
+      <th><%= l(:field_project) %>:</th>
+      <td><%= link_to @report.project.name, project_path(@report.project) %></td>
+    </tr>
+    <tr>
+      <th><%= l(:field_version) %>:</th>
+      <td><%= @report.version.try(:name) || "-" %></td>
+    </tr>
+    <tr>
+      <th><%= l(:field_report_period) %>:</th>
+      <td><%= @report.period %></td>
+    </tr>
+    <tr>
+      <th><%= l(:field_date_period) %>:</th>
+      <td><%= "#{format_date(@report.start_date)} - #{format_date(@report.end_date)}" %></td>
+    </tr>
+    <tr>
+      <th><%= l(:field_status) %>:</th>
+      <td><%= @report.status %></td>
+    </tr>
+  </table>
+</div>
+
+<% if @tasks.any? %>
+  <div class="box">
+    <h3><%= l(:label_related_issues) %></h3>
+    <%= render partial: 'issues_table' %>
+  </div>
+<% end %>

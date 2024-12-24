@@ -108,3 +108,7 @@ ru:
   error_unable_delete: "Ошибка при удалении задач"
   field_actions: 'Действия'
   button_delete_selected: 'Удалить выбранное'
+  label_reports: 'Отчеты'
+  field_report_name: 'Название отчёта'
+  field_report_period: 'Период отчёта'
+  field_date_period: 'Даты отчёта'

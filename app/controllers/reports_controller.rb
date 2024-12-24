@@ -146,6 +146,13 @@ class ReportsController < ApplicationController
   def show
     @report = Report.find(params[:id])
     @tasks = @report.issues
+
+    respond_to do |format|
+      format.html # добавляем явный рендеринг html формата
+      format.api
+    end
+  rescue ActiveRecord::RecordNotFound
+    render_404
   end
 
   private

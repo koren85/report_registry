@@ -2,8 +2,12 @@
 require File.expand_path('../app/helpers/reports_helper', __FILE__)
 require File.expand_path('../lib/reports_hook_listener', __FILE__)
 require File.expand_path('../lib/project_patch', __FILE__)
-
-require_dependency 'reports_hook_listener'
+# require 'report_registry/hooks'
+#
+# Rails.application.config.to_prepare do
+# require_dependency 'reports_hook_listener'
+#
+# end
 
 Redmine::Plugin.register :report_registry do
   name 'Report Registry Plugin'
@@ -50,4 +54,11 @@ Redmine::Plugin.register :report_registry do
     },
     partial: 'settings/report_registry_settings'
   )
+
+
+end
+# Добавляем загрузку хуков
+Rails.application.config.to_prepare do
+  require_dependency 'reports_hook_listener'
+  Issue.include ReportRegistry::IssuePatch
 end
