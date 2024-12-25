@@ -1,8 +1,10 @@
 # app/controllers/report_issues_controller.rb
 class ReportIssuesController < ApplicationController
-  before_action :find_report
-  before_action :find_project
-  before_action :authorize
+  before_action :find_project_by_params
+  before_action :find_issue, only: [:remove_issue, :add_issue]
+  before_action :find_report, only: [:modal_issues, :index, :search, :add_issues, :remove_issue, :remove_issues]
+  before_action :authorize # Оставляем стандартный authorize, так как права уже определены в init.rb
+
 
   def modal_issues
     @issues = available_project_issues
@@ -46,49 +48,47 @@ class ReportIssuesController < ApplicationController
     render json: search_issues_to_json(@issues)
   end
 
-
   def add_issues
     if params[:issue_ids].present?
-      begin
-        # Находим только те задачи, которых еще нет в отчете
-        new_issue_ids = params[:issue_ids].uniq - @report.issue_ids.map(&:to_s)
+      # Массовое добавление
+      new_issue_ids = params[:issue_ids].uniq - @report.issue_ids.map(&:to_s)
+      @issues = Issue.where(id: new_issue_ids)
+      @report.issues << @issues
 
-        if new_issue_ids.any?
-          @issues = Issue.where(id: new_issue_ids)
-          @report.issues << @issues
-        end
-
-        # Обновляем информацию об изменении отчета
+      # Обновление отчёта
+      @report.updated_by = User.current.id
+      @report.updated_at = Time.current
+      @report.save
+    elsif params[:issue_id].present?
+      # Одиночное добавление
+      @issue = Issue.find(params[:issue_id])
+      unless @report.issues.include?(@issue)
+        @report.issues << @issue
         @report.updated_by = User.current.id
         @report.updated_at = Time.current
         @report.save
-
-        @report.reload
-
-        respond_to do |format|
-          format.html { redirect_to edit_report_path(@report) }
-          format.js
-        end
-      rescue => e
-        Rails.logger.error "Error adding issues: #{e.message}\n#{e.backtrace.join("\n")}"
-        respond_to do |format|
-          format.html do
-            flash[:error] = l(:error_adding_issues)
-            redirect_to edit_report_path(@report)
-          end
-          format.js { render js: "alert('#{l(:error_adding_issues)}');", status: :unprocessable_entity }
-        end
       end
+    end
+
+    @report.reload
+
+    respond_to do |format|
+      format.html { redirect_to edit_report_path(@report) }
+      format.js
+    end
+  rescue => e
+    Rails.logger.error "Error adding issues: #{e.message}\n#{e.backtrace.join("\n")}"
+    respond_to do |format|
+      format.html do
+        flash[:error] = l(:error_adding_issues)
+        redirect_to edit_report_path(@report)
+      end
+      format.js { render js: "alert('#{l(:error_adding_issues)}');", status: :unprocessable_entity }
     end
   end
 
-  # app/controllers/report_issues_controller.rb
-
   def remove_issue
-    @issue = Issue.find(params[:id])
-    @issue_id = @issue.id
-
-    if @report.issue_reports.where(issue_id: @issue_id).destroy_all
+    if @report.issue_reports.where(issue_id: @issue.id).destroy_all
       @report.touch
       respond_to do |format|
         format.js
@@ -124,11 +124,17 @@ class ReportIssuesController < ApplicationController
     end
   end
 
-
-
-
-
   private
+
+  def find_project_by_params
+    @project = if params[:project_id]
+                 Project.find(params[:project_id])
+               elsif params[:report_id]
+                 report = Report.find(params[:report_id])
+                 report.project
+               end
+    render_404 unless @project
+  end
 
   def available_project_issues
     # Получаем ID всех подпроектов включая текущий проект
@@ -137,8 +143,11 @@ class ReportIssuesController < ApplicationController
   end
 
   def find_report
-    @report = Report.find(params[:report_id])
-    @project = @report.project
+    @report = if params[:report_id]
+                Report.find(params[:report_id])
+              else
+                Report.find(params[:id])
+              end
   rescue ActiveRecord::RecordNotFound
     render_404
   end
@@ -149,6 +158,13 @@ class ReportIssuesController < ApplicationController
       render_404
     end
   end
+
+  def find_issue
+    @issue = @project.issues.find(params[:issue_id])
+  rescue ActiveRecord::RecordNotFound
+    render_404
+  end
+
 
   def find_project_by_report
     @report = Report.find_by(id: params[:report_id])

@@ -1,13 +1,15 @@
+//# app/views/report_issues/remove_issues.js.erb
 <% if @issue_ids.present? %>
 <% @issue_ids.each do |issue_id| %>
-// Удаляем строки из таблицы
 $('#issue-row-<%= issue_id %>').fadeOut('normal', function() {
     $(this).remove();
 });
 
 // Обновляем select2
 var $issuesSelect = $('#issues-select');
-$issuesSelect.find('option[value="<%= issue_id %>"]').remove();
+if ($issuesSelect.length) {
+    $issuesSelect.find('option[value="<%= issue_id %>"]').remove();
+}
 <% end %>
 
 // Обновляем select2 после всех изменений
@@ -17,8 +19,21 @@ $('#issues-select').trigger('change');
 $('#select-all-issues').prop('checked', false);
 $('#delete-selected-issues').hide();
 
-// Показываем сообщение об успехе
-alert('<%= j l(:notice_successful_delete) %>');
+// Показываем пустое состояние если нужно
+if ($('#report-issues-body tr').length === 0) {
+    $('#report-issues-body').html('<tr><td colspan="10" class="text-center">Нет задач</td></tr>');
+}
+
+// Показываем flash-сообщение
+var $notice = $('<div class="flash notice"></div>')
+  .html('Успешно удалено')
+  .hide()
+  .prependTo('#content')
+  .fadeIn();
+
+setTimeout(function() {
+    $notice.fadeOut(function() { $(this).remove(); });
+}, 3000);
 <% else %>
-alert('<%= j l(:notice_no_issues_selected) %>');
+alert('Выберите задачи для удаления');
 <% end %>

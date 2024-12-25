@@ -1,21 +1,47 @@
-// Удаляем строку из таблицы с анимацией
-$('#issue-row-<%= @issue_id %>').fadeOut('normal', function() {
+// app/views/report_issues/remove_issue.js.erb
+
+<% if @report.errors.empty? %>
+// Находим строку удаляемого отчета и удаляем её с анимацией
+$('tr[data-report-id="<%= @report.id %>"]').fadeOut('fast', function() {
     $(this).remove();
+
+    // Проверяем остались ли отчеты
+    if ($('.reports tbody tr').length === 0) {
+        $('.reports tbody').append('<tr><td colspan="5"><%= j l(:label_no_reports) %></td></tr>');
+    }
 });
 
-// Обновляем select2 только для удаленной задачи
+// Показываем уведомление об успешном удалении
+var $notification = $('<div class="flash notice" style="display: none;"></div>')
+  .html('<%= j l(:notice_successful_delete) %>');
+$('#content').prepend($notification);
+$notification.slideDown();
+
+setTimeout(function() {
+    $notification.slideUp(function() { $(this).remove(); });
+}, 3000);
+
+// Обновляем select2 если он существует
 var $issuesSelect = $('#issues-select');
-$issuesSelect.find('option[value="<%= @issue_id %>"]').remove();
-$issuesSelect.trigger('change');
-
-// Сбрасываем чекбокс "выбрать все" если он есть
-var selectAllCheckbox = document.getElementById('select-all-issues');
-if (selectAllCheckbox) {
-    selectAllCheckbox.checked = false;
+if ($issuesSelect.length) {
+    $issuesSelect.find('option[value="<%= @issue_id %>"]').remove();
+    $issuesSelect.trigger('change');
 }
 
-// Обновляем видимость кнопки массового удаления
-var deleteButton = document.getElementById('delete-selected-issues');
-if (deleteButton) {
-    deleteButton.style.display = 'none';
-}
+// Обработка элементов массового удаления
+['select-all-issues', 'delete-selected-issues'].forEach(function(id) {
+    var element = document.getElementById(id);
+    if (element) {
+        id === 'select-all-issues' ? element.checked = false : element.style.display = 'none';
+    }
+});
+<% else %>
+var $error = $('<div class="flash error" style="display: none;"></div>')
+  .html('<%= j l(:error_unable_delete) %>');
+$('#content').prepend($error);
+$error.slideDown();
+
+setTimeout(function() {
+    $error.slideUp(function() { $(this).remove(); });
+}, 3000);
+<% end %>

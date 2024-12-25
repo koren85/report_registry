@@ -1,3 +1,4 @@
+<!--# app/views/reports/_issues_table.html.erb-->
 <div class="report-issues-wrapper">
   <div id="issues-table-container" class="box">
     <div class="issues-table-header">
@@ -9,32 +10,34 @@
                     remote: true,
                     'data-modal': true %>
       <% end %>
-      <button id="delete-selected-issues" class="button icon icon-del" style="display: none;" data-report-id="<%= @report.id %>">
+      <button id="delete-selected-issues"
+              class="button icon icon-del"
+              style="display: none;"
+              data-report-id="<%= @report.id %>"
+              data-project-identifier="<%= @project&.identifier %>">
         <%= l(:button_delete_selected) %>
       </button>
     </div>
 
     <table class="list issues-list">
       <thead>
-        <tr>
-          <th><input type="checkbox" id="select-all-issues" /></th>
-          <th>#</th>
-          <th><%= l(:field_subject) %></th>
-          <th><%= l(:field_status) %></th>
-          <th><%= l(:field_project) %></th>
-          <th><%= l(:field_version) %></th>
-          <th><%= l(:field_start_date) %></th>
-          <th><%= l(:field_due_date) %></th>
-          <th><%= l(:field_parent_issue) %></th>
-          <th class="buttons"><%= l(:field_actions) %></th>
-        </tr>
+      <tr>
+        <th><input type="checkbox" id="select-all-issues" /></th>
+        <th>#</th>
+        <th><%= l(:field_subject) %></th>
+        <th><%= l(:field_status) %></th>
+        <th><%= l(:field_project) %></th>
+        <th><%= l(:field_version) %></th>
+        <th><%= l(:field_start_date) %></th>
+        <th><%= l(:field_due_date) %></th>
+        <th><%= l(:field_parent_issue) %></th>
+        <th class="buttons"><%= l(:field_actions) %></th>
+      </tr>
       </thead>
       <tbody id="report-issues-body">
-        <%= render 'report_issues/issues_list' if @report&.persisted? %>
+      <%= render 'report_issues/issues_list' if @report&.persisted? %>
       </tbody>
     </table>
-
-
   </div>
 </div>
 

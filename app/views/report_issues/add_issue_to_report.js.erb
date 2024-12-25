@@ -1,0 +1,3 @@
+//# app/views/report_issues/add_issue_to_report.js.erb
+$('.reports-section').replaceWith('<%= j render partial: "hooks/report_registry/show_reports" %>');
+$('#report_id').val('').trigger('change');

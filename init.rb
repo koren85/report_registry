@@ -35,7 +35,6 @@ Redmine::Plugin.register :report_registry do
     permission :view_reports_global, { reports: [:index] }, global: true
     permission :manage_reports_global, { reports: [:new, :create] }, global: true
     permission :remove_issues, { report_issues: [:remove_issues] }, require: :member
-
   end
 
   # Добавление пункта меню в проекты с включенным модулем
