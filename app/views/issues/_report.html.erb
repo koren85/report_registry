@@ -1,0 +1,54 @@
+<%
+  @reports ||= Report.joins(:issue_reports)
+                     .where(issue_reports: { issue_id: @issue.id })
+                     .order(updated_at: :desc)
+
+  report_ids = @reports.map(&:id)
+%>
+
+<% if @issue && @project && @project.module_enabled?(:report_registry) %>
+  <div class="box" id="issue-reports">
+    <% if User.current.allowed_to?(:manage_reports, @project) %>
+      <div class="contextual">
+        <a href="#" id="show-report-menu" class="icon icon-add"
+           title="<%= l(:button_add) %>"><%= l(:button_add) %></a>
+      </div>
+    <% end %>
+
+    <h3><%= l(:label_reports) %></h3>
+
+    <% if @reports.present? %>
+      <% @reports.each do |report| %>
+        <div class="report" data-id="<%= report.id %>">
+          <%= link_to report.name,
+                      project_report_path(report.project, report),
+                      class: 'report-link' %>
+          <span class="report-info">
+            (<%= format_date(report.start_date) %> - <%= format_date(report.end_date) %>)
+            <span class="status <%= report.status %>"><%= report.status %></span>
+          </span>
+        </div>
+      <% end %>
+    <% else %>
+      <p class="nodata"><%= l(:label_no_data) %></p>
+    <% end %>
+  </div>
+
+  <% if User.current.allowed_to?(:manage_reports, @project) %>
+    <div id="report-menu" class="dropdown-menu" style="display: none;">
+      <ul>
+        <% Report.where(project_id: @project.id)
+                 .where.not(id: report_ids)
+                 .order(created_at: :desc)
+                 .each do |report| %>
+          <li>
+            <%= link_to report.name,
+                        add_report_issue_path(@issue, report),
+                        class: 'add-report-link',
+                        data: { report_id: report.id } %>
+          </li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+<% end %>

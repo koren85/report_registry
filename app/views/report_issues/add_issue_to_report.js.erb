@@ -1,3 +1,89 @@
-//# app/views/report_issues/add_issue_to_report.js.erb
-$('.reports-section').replaceWith('<%= j render partial: "hooks/report_registry/show_reports" %>');
-$('#report_id').val('').trigger('change');
+//# app/views/hooks/report_registry/_show_reports.html.erb
+<tr class="reports-section" id="issue-reports">
+    <td colspan="4">
+        <div class="box">
+            <h3>
+              <%= l(:label_reports) %>
+              <% if User.current.allowed_to?(:manage_reports, @project) || User.current.admin? %>
+              <%= link_to '',
+              'javascript:void(0)',
+              class: 'icon icon-add',
+              id: 'show-report-menu',
+              title: l(:button_add) %>
+              <% end %>
+            </h3>
+
+            <table class="list reports">
+                <thead>
+                <tr>
+                    <th><%= l(:field_version) %></th>
+                    <th><%= l(:field_report_name) %></th>
+                    <th><%= l(:field_report_period) %></th>
+                    <th><%= l(:field_date_period) %></th>
+                    <th></th>
+                </tr>
+                </thead>
+                <tbody id="reports-list">
+                <% if @issue.reports.any? %>
+                <% @issue.reports.includes(:project, :version).order(updated_at: :desc).each do |report| %>
+                <tr data-report-id="<%= report.id %>">
+                    <td><%= report.version.try(:name) || "-" %></td>
+                    <td><%= link_to(report.name,
+                              report.project ? project_report_path(report.project, report) : report_path(report)) %></td>
+                    <td><%= report.period %></td>
+                    <td><%= "#{format_date(report.start_date)} - #{format_date(report.end_date)}" %></td>
+                    <td class="buttons">
+                      <% if User.current.allowed_to?(:manage_reports, @project) || User.current.admin? %>
+                      <%= link_to l(:button_delete),
+                              remove_project_issue_report_issues_path(@project, @issue, report_id: report.id),
+                              method: :delete,
+                              remote: true,
+                              class: 'icon icon-del',
+                              data: { confirm: l(:text_are_you_sure) } %>
+                      <% end %>
+                    </td>
+                </tr>
+                <% end %>
+                <% else %>
+                <tr class="no-reports">
+                    <td colspan="5" class="text-center"><%= l(:label_no_data) %></td>
+                </tr>
+                <% end %>
+                </tbody>
+            </table>
+        </div>
+    </td>
+</tr>
+
+<% # Выпадающее меню для выбора отчета %>
+<div id="report-menu" class="dropdown-menu" style="display: none;">
+  <% available_reports = @project.reports
+                               .where("version_id IS NULL OR version_id = ?", @issue.fixed_version_id)
+                               .where.not(id: @issue.report_ids)
+                               .order(updated_at: :desc) %>
+    <ul>
+      <% if available_reports.any? %>
+      <% available_reports.each do |report| %>
+        <li>
+          <%= link_to report.name,
+                      add_issues_project_report_report_issues_path(@project, report),
+                      class: 'add-report-link',
+                      remote: true,
+                      method: :post,
+                      data: {
+                        report_id: report.id,
+                        issue_id: @issue.id
+                      } %>
+        </li>
+      <% end %>
+      <% else %>
+        <li class="disabled"><span><%= l(:label_no_available_reports) %></span></li>
+      <% end %>
+    </ul>
+</div>
+
+<% content_for :header_tags do %>
+<%= javascript_include_tag 'report_menu', plugin: 'report_registry' %>
+<%= javascript_include_tag 'report_registry', plugin: 'report_registry' %>
+<%= stylesheet_link_tag 'report_registry', plugin: 'report_registry' %>
+<% end %>

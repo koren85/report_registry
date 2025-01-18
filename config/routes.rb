@@ -1,3 +1,5 @@
+# config/routes.rb
+
 Rails.application.routes.draw do
   resources :reports do
     resources :report_issues do
@@ -7,6 +9,7 @@ Rails.application.routes.draw do
         post 'add_issues'
         delete 'remove_issues'
         delete 'remove_issue'
+        post 'add', action: 'add_issue'
       end
     end
     member do
@@ -26,6 +29,8 @@ Rails.application.routes.draw do
           post 'add_issues'
           delete 'remove_issues'
           delete 'remove_issue'
+          # Добавляем маршрут для add_issue
+          post 'add', action: 'add_issue'
         end
       end
       member do

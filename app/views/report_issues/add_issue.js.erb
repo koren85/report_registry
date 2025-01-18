@@ -1,0 +1,10 @@
+// app/views/report_issues/add_issue.js.erb
+
+// Рендерим новую строку отчета и добавляем её в начало списка
+$("#reports-list").prepend("<%= j render partial: 'report', locals: { report: @report } %>");
+
+// Скрываем выпадающее меню
+$('#report-menu').hide();
+
+// Отображаем уведомление об успешном добавлении
+alert('<%= j l(:notice_report_added) %>');

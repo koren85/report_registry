@@ -2,7 +2,7 @@
 class ReportIssuesController < ApplicationController
   before_action :find_project_by_params
   before_action :find_issue, only: [:remove_issue, :add_issue]
-  before_action :find_report, only: [:modal_issues, :index, :search, :add_issues, :remove_issue, :remove_issues]
+  before_action :find_report, only: [:modal_issues, :index, :search, :add_issues, :remove_issue, :remove_issues, :add_issue]
   before_action :authorize # Оставляем стандартный authorize, так как права уже определены в init.rb
 
 
@@ -87,6 +87,43 @@ class ReportIssuesController < ApplicationController
     end
   end
 
+
+  # Добавляем новое действие add_issue
+  def add_issue
+    Rails.logger.info "Parameters: #{params.inspect}"
+    Rails.logger.info "Current user: #{User.current.login}"
+
+    if @issue.reports.include?(@report)
+      Rails.logger.info "Report already added."
+      respond_to do |format|
+        format.js { render js: "alert('#{j l(:report_already_added)}');" }
+        format.html { redirect_to project_issue_path(@project, @issue), alert: 'Отчет уже добавлен к задаче.' }
+      end
+      return
+    end
+
+    if @issue.reports << @report
+      Rails.logger.info "Report added successfully."
+      @report.touch # Обновляем время изменения отчета
+      respond_to do |format|
+        format.js   # Создайте файл add_issue.js.erb
+        format.html { redirect_to project_issue_path(@project, @issue), notice: 'Отчет успешно добавлен к задаче.' }
+      end
+    else
+      Rails.logger.error "Failed to add report."
+      respond_to do |format|
+        format.js { render js: "alert('#{j l(:error_adding_report)}');" }
+        format.html { redirect_to project_issue_path(@project, @issue), alert: 'Не удалось добавить отчет к задаче.' }
+      end
+    end
+  rescue => e
+    Rails.logger.error "Error adding issue to report: #{e.message}\n#{e.backtrace.join("\n")}"
+    respond_to do |format|
+      format.js { render js: "alert('#{j l(:error_adding_report)}');", status: :unprocessable_entity }
+      format.html { redirect_to project_issue_path(@project, @issue), alert: 'Произошла ошибка при добавлении отчета.' }
+    end
+  end
+
   def remove_issue
     if @report.issue_reports.where(issue_id: @issue.id).destroy_all
       @report.touch
@@ -151,6 +188,7 @@ class ReportIssuesController < ApplicationController
   rescue ActiveRecord::RecordNotFound
     render_404
   end
+
 
   def find_project
     @project = @report.project

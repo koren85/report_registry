@@ -112,3 +112,7 @@ ru:
   field_report_name: 'Название отчёта'
   field_report_period: 'Период отчёта'
   field_date_period: 'Даты отчёта'
+  error_adding_report: "Не удалось добавить отчет."
+  report_already_added: "Отчет уже добавлен к задаче."
+  notice_report_added: "Отчет успешно добавлен."
+  notice_report_removed: "Отчет успешно удалён."

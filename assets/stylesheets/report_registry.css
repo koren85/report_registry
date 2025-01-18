@@ -1,43 +1,46 @@
 /* plugins/report_registry/assets/stylesheets/report_registry.css */
+
+/* Базовые стили для таблиц */
 table.list.reports {
     width: 100%;
     border-collapse: collapse;
 }
+
 table.list.reports tr.odd {
     background-color: #f9f9f9;
 }
+
 table.list.reports tr:hover {
     background-color: #eaeaea;
 }
-table.list.reports .status.черновик {
-    color: gray;
-}
-table.list.reports .status.в_работе {
-    color: blue;
-}
-table.list.reports .status.сформирован {
-    color: orange;
-}
-table.list.reports .status.утвержден {
-    color: green;
-}
-/* plugins/report_registry/assets/stylesheets/report_registry.css */
+
+/* Стили статусов отчетов */
+table.list.reports .status.черновик { color: #666; }
+table.list.reports .status.в_работе { color: #0073aa; }
+table.list.reports .status.сформирован { color: #f90; }
+table.list.reports .status.утвержден { color: #4c9900; }
+
+/* Стили для сортировки в таблицах */
 table.list.reports th a {
     text-decoration: none;
     color: #0073aa;
+    position: relative;
+    padding-right: 20px;
 }
-table.list.reports th a.asc::after {
-    content: ' 🔼'; /* Указывает на сортировку по возрастанию */
-}
+
+table.list.reports th a.asc::after,
 table.list.reports th a.desc::after {
-    content: ' 🔽'; /* Указывает на сортировку по убыванию */
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.8em;
 }
-table.list.reports th a.asc::after {
-    content: ' 🔼';
-}
-table.list.reports th a.desc::after {
-    content: ' 🔽';
-}
+
+table.list.reports th a.asc::after { content: ' 🔼'; }
+table.list.reports th a.desc::after { content: ' 🔽'; }
+
+/* Стили селекторов периода */
 .period-select {
     margin-right: 10px;
     padding: 5px;
@@ -51,20 +54,138 @@ table.list.reports th a.desc::after {
 
 #date_fields_container label {
     font-weight: bold;
+    display: inline-block;
+    margin-bottom: 5px;
 }
 
-/*# assets/stylesheets/report_registry.css*/
-      /* Добавить в существующий файл стилей */
-  .report-item {
-      margin: 2px 0;
-      padding: 2px 0;
-  }
-
-.report-link {
-    margin-right: 5px;
+/* Стили отчетов в задаче */
+.report {
+    margin-bottom: 10px;
+    padding: 8px;
+    border-bottom: 1px solid #eee;
 }
 
-.report-details {
+.report-info {
     color: #666;
     font-size: 0.9em;
+    margin-left: 10px;
+}
+
+/* Стили выпадающего меню */
+#report-menu.dropdown-menu {
+    position: absolute;
+    z-index: 1000;
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    padding: 5px 0;
+    min-width: 150px;
+    display: none;
+}
+
+#report-menu.dropdown-menu ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+#report-menu.dropdown-menu li a {
+    display: block;
+    padding: 5px 15px;
+    text-decoration: none;
+    color: #333;
+}
+
+#report-menu.dropdown-menu li a:hover {
+    background-color: #f5f5f5;
+}
+
+/* Стили модального окна */
+#reports-modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 10% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    border-radius: 3px;
+    width: 80%;
+    max-width: 600px;
+    position: relative;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.close-modal {
+    position: absolute;
+    right: 10px;
+    top: 10px;
+    font-size: 24px;
+    font-weight: bold;
+    color: #666;
+    cursor: pointer;
+    padding: 5px;
+    line-height: 1;
+}
+
+.close-modal:hover {
+    color: #000;
+}
+
+/* Кнопка показа меню отчета */
+#show-report-menu {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    margin-left: 5px;
+    vertical-align: middle;
+    cursor: pointer;
+}
+
+#show-report-menu::before {
+    content: "\e145";
+    font-family: 'redmine-icons';
+    font-size: 16px;
+    color: #0073aa;
+}
+
+#show-report-menu:hover::before {
+    color: #005177;
+}
+
+/* Вспомогательные классы */
+.inline-flex {
+    display: inline-flex;
+    align-items: center;
+}
+
+.width-100 {
+    width: 100%;
+}
+
+/* Отзывчивый дизайн */
+@media (max-width: 768px) {
+    .modal-content {
+        width: 95%;
+        margin: 5% auto;
+    }
+
+    .period-select {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+
+    .inline-flex {
+        flex-direction: column;
+        align-items: stretch;
+    }
 }
