@@ -1,0 +1,31 @@
+<!--# plugins/report_registry/app/views/report_issues/_reports_list.html.erb-->
+<% if issue.reports.any? %>
+  <% issue.reports.includes(:project, :version).order(updated_at: :desc).each do |report| %>
+    <tr class="report" data-id="<%= report.id %>">
+      <td class="version"><%= report.version.try(:name) || "-" %></td>
+      <td class="name">
+        <%= link_to report.name,
+                    project_report_path(report.project, report),
+                    class: 'report-link' %>
+      </td>
+      <td class="period"><%= report.period %></td>
+      <td class="dates">
+        <%= format_date(report.start_date) %> - <%= format_date(report.end_date) %>
+      </td>
+      <td class="buttons">
+        <% if User.current.allowed_to?(:manage_reports, @project) %>
+          <%= link_to l(:button_delete),
+                      remove_project_issue_report_issues_path(@project, issue, report_id: report.id),
+                      method: :delete,
+                      remote: true,
+                      class: 'icon icon-del',
+                      data: { confirm: l(:text_are_you_sure) } %>
+        <% end %>
+      </td>
+    </tr>
+  <% end %>
+<% else %>
+  <tr class="no-data">
+    <td colspan="5"><%= l(:label_no_data) %></td>
+  </tr>
+<% end %>

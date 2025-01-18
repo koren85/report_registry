@@ -124,14 +124,33 @@ class ReportIssuesController < ApplicationController
     end
   end
 
+  # def remove_issue
+  #   if @report.issue_reports.where(issue_id: @issue.id).destroy_all
+  #     @report.touch
+  #     respond_to do |format|
+  #       format.js
+  #     end
+  #   else
+  #     respond_to do |format|
+  #       format.js { render js: "alert('#{l(:error_unable_delete)}');" }
+  #     end
+  #   end
+  # end
+
   def remove_issue
+    if params[:issue_id].present?
+      @issue = Issue.find(params[:issue_id])
+    end
+
     if @report.issue_reports.where(issue_id: @issue.id).destroy_all
       @report.touch
       respond_to do |format|
+        format.html { redirect_back(fallback_location: project_report_path(@project, @report)) }
         format.js
       end
     else
       respond_to do |format|
+        format.html { redirect_back(fallback_location: project_report_path(@project, @report), alert: l(:error_unable_delete)) }
         format.js { render js: "alert('#{l(:error_unable_delete)}');" }
       end
     end

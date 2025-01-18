@@ -1,9 +1,10 @@
 <!--# app/views/report_issues/_issues_list.html.erb-->
-<% @report.issues.includes(:status, :fixed_version, :project, :parent).each do |issue| %>
+<tbody id="report-issues-body">
+<% @report.issues.includes(:status, :fixed_version, :project, :parent)  .each do |issue| %>
   <tr id="issue-row-<%= issue.id %>" data-issue-id="<%= issue.id %>">
     <td><%= check_box_tag 'issue_ids[]', issue.id, false, class: 'issue-checkbox' %></td>
     <td><%= link_to issue.id, issue_path(issue) %></td>
-    <td><%= issue.subject %></td>
+    <td><%= link_to issue.subject, project_issue_path(issue.project, issue) %></td>
     <td><%= issue.status.name %></td>
     <td><%= issue.project.name %></td>
     <td><%= issue.fixed_version.try(:name) %></td>
@@ -12,7 +13,7 @@
     <td><%= issue.parent ? "##{issue.parent.id}" : "" %></td>
     <td class="buttons">
       <%= link_to l(:button_delete),
-                  remove_issue_project_report_report_issues_path(@project, @report, id: issue.id),
+                  remove_single_issue_project_report_report_issues_path(issue.project, @report, issue_id: issue.id),
                   method: :delete,
                   remote: true,
                   class: 'icon icon-del',
@@ -20,3 +21,4 @@
     </td>
   </tr>
 <% end %>
+</tbody>

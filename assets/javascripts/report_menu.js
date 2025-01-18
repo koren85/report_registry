@@ -1,4 +1,4 @@
-// assets/javascripts/report_menu.js
+// # plugins/report_registry/assets/javascripts/report_menu.js
 var ReportMenu = (function() {
     function init() {
         initializeEventHandlers();
@@ -8,65 +8,55 @@ var ReportMenu = (function() {
         // Обработчик клика по кнопке добавления
         $(document).on('click', '#show-report-menu', function(e) {
             e.preventDefault();
+            e.stopPropagation();
             showMenu(this);
         });
 
         // Обработчик клика по пункту меню
         $(document).on('click', '.add-report-link', function(e) {
             e.preventDefault();
+            e.stopPropagation();
             addReportToIssue(this);
         });
 
-        // Обработчик для добавления отчета через модальное окно
-        $(document).on('click', '#add-report', function(e) {
-            e.preventDefault();
-            var url = $(this).data('url');
-
-            $.ajax({
-                url: url,
-                type: 'GET',
-                dataType: 'script',
-                success: function() {
-                    $('#reports-modal').show();
-                }
-            });
-        });
-
-        // Закрытие модального окна
-        $(document).on('click', '.close-modal', function(e) {
-            e.preventDefault();
-            $('#reports-modal').hide();
-        });
-
-        // Закрытие модального окна при клике вне его
+        // Закрытие меню при клике вне его
         $(document).on('click', function(e) {
-            if ($('#reports-modal').is(':visible') && !$(e.target).closest('.modal-content').length) {
-                $('#reports-modal').hide();
+            if (!$(e.target).closest('#report-menu, #show-report-menu').length) {
+                $('#report-menu').hide();
             }
-        });
-
-        // Обработчик удаления отчета
-        $(document).on('ajax:success', '.delete-report', function() {
-            $(this).closest('.report').fadeOut();
         });
     }
 
     function showMenu(link) {
         var menu = $('#report-menu');
-        var position = $(link).offset();
+        var $link = $(link);
+        var offset = $link.offset();
+        var linkHeight = $link.outerHeight();
+
+        // Проверяем, есть ли место ниже кнопки
+        var spaceBelow = $(window).height() - (offset.top + linkHeight);
+        var menuHeight = menu.outerHeight();
+
+        var top;
+        if (spaceBelow >= menuHeight || spaceBelow >= 100) {
+            // Размещаем меню под кнопкой
+            top = offset.top + linkHeight;
+        } else {
+            // Размещаем меню над кнопкой
+            top = offset.top - menuHeight;
+        }
 
         menu.css({
-            top: position.top + $(link).outerHeight(),
-            left: position.left
+            position: 'absolute',
+            top: top + 'px',
+            left: offset.left + 'px',
+            zIndex: 1000
         }).show();
 
-        // Закрытие меню при клике вне его
-        $(document).on('click', function closeMenu(e) {
-            if (!$(e.target).closest('#report-menu, #show-report-menu').length) {
-                menu.hide();
-                $(document).off('click', closeMenu);
-            }
-        });
+        // Убеждаемся, что меню полностью видно
+        if (menu.offset().top + menu.outerHeight() > $(window).height()) {
+            menu.css('top', $(window).height() - menu.outerHeight() - 10);
+        }
     }
 
     function addReportToIssue(link) {
@@ -90,10 +80,6 @@ var ReportMenu = (function() {
             },
             success: function() {
                 $('#report-menu').hide();
-                // Обновляем список отчетов после успешного добавления
-                if (typeof updateReportsList === 'function') {
-                    updateReportsList();
-                }
             },
             error: function(xhr, status, error) {
                 console.error('Error adding report:', error);

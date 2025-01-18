@@ -29,7 +29,7 @@ Rails.application.routes.draw do
           post 'add_issues'
           delete 'remove_issues'
           delete 'remove_issue'
-          # Добавляем маршрут для add_issue
+          delete 'remove_single_issue/:issue_id', action: 'remove_issue', as: 'remove_single_issue'
           post 'add', action: 'add_issue'
         end
       end
