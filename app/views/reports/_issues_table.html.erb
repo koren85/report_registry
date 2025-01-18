@@ -3,9 +3,10 @@
   <div id="issues-table-container" class="box">
     <div class="issues-table-header">
       <h3><%= l(:label_report_issues) %></h3>
-      <% if @project %>
+      <% project = @project || @report&.project %>
+      <% if project || @report %>
         <%= link_to l(:button_add_issues),
-                    modal_issues_report_report_issues_path(@report || @project.reports.new),
+                    modal_issues_report_report_issues_path(@report || Report.new(project_id: project&.id)),
                     class: 'button icon icon-add',
                     remote: true,
                     'data-modal': true %>
@@ -13,8 +14,8 @@
       <button id="delete-selected-issues"
               class="button icon icon-del"
               style="display: none;"
-              data-report-id="<%= @report.id %>"
-              data-project-identifier="<%= @project&.identifier %>">
+              data-report-id="<%= @report&.id %>"
+              data-project-identifier="<%= project&.identifier %>">
         <%= l(:button_delete_selected) %>
       </button>
     </div>

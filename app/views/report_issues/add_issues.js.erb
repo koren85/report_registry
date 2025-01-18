@@ -1,25 +1,31 @@
-// Обновляем таблицу задач
-$("#report-issues-body").html("<%= j render 'report_issues/issues_list' %>");
+//# plugins/report_registry/app/views/report_issues/add_issues.js.erb
 
-// Обновляем select2
+// Удаляем строку "нет данных" если она есть
+$("#report-issues-body tr.no-data").remove();
+
+// Обновляем всю таблицу задач
+$("#report-issues-body").html("<%= j render partial: 'report_issues/issues_list' %>");
+
+// Закрываем модальное окно если оно есть
+if (typeof hideModal === 'function') {
+    hideModal();
+}
+
+// Обновляем select2 если он используется
 (function() {
     var $issuesSelect = $('#issues-select');
-    var updatedIssues = <%= raw @report.issues.map { |i| { id: i.id, text: "#{i.id} - #{i.subject}" } }.to_json %>;
+    if ($issuesSelect.length) {
+        var updatedIssues = <%= raw (@report.persisted? ? @report.issues : @issues || []).map { |i| { id: i.id, text: "#{i.id} - #{i.subject}" } }.to_json %>;
 
-    // Очищаем текущий выбор
-    $issuesSelect.val(null).trigger('change');
+        $issuesSelect.val(null).trigger('change');
 
-    // Добавляем все задачи
-    updatedIssues.forEach(function(issue) {
-        if ($issuesSelect.find("option[value='" + issue.id + "']").length === 0) {
-            var option = new Option(issue.text, issue.id, true, true);
-            $issuesSelect.append(option);
-        }
-    });
+        updatedIssues.forEach(function(issue) {
+            if ($issuesSelect.find("option[value='" + issue.id + "']").length === 0) {
+                var option = new Option(issue.text, issue.id, true, true);
+                $issuesSelect.append(option);
+            }
+        });
 
-    // Устанавливаем значения и триггерим изменение
-    $issuesSelect.val(updatedIssues.map(function(i) { return i.id; })).trigger('change');
-
-    // Закрываем модальное окно
-    hideModal();
+        $issuesSelect.val(updatedIssues.map(function(i) { return i.id; })).trigger('change');
+    }
 })();

@@ -1,7 +1,14 @@
-// app/views/report_issues/add_issue.js.erb
+//# plugins/report_registry/app/views/report_issues/add_issue.js.erb
+
+// Удаляем строку "нет данных" если она есть
+$("#reports-list tr.no-data").remove();
 
 // Рендерим новую строку отчета и добавляем её в начало списка
-$("#reports-list").prepend("<%= j render partial: 'report', locals: { report: @report } %>");
+$("#reports-list").prepend("<%= j render partial: 'report_issues/report', locals: { report: @report, issue: @issue, project: @project } %>");
+
+// Обновляем список доступных отчетов в меню
+var $reportMenu = $('#report-menu ul');
+$reportMenu.html("<%= j render partial: 'report_issues/available_reports', locals: { issue: @issue, project: @project } %>");
 
 // Скрываем выпадающее меню
 $('#report-menu').hide();

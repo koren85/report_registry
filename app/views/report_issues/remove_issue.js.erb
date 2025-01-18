@@ -1,47 +1,46 @@
-// app/views/report_issues/remove_issue.js.erb
+//# plugins/report_registry/app/views/report_issues/remove_issue.js.erb
 
 <% if @report.errors.empty? %>
-// Находим строку удаляемого отчета и удаляем её с анимацией
-$('tr[data-report-id="<%= @report.id %>"]').fadeOut('fast', function() {
-    $(this).remove();
+// Определяем контекст (отчет или задача)
+var isReportContext = $('#report-issues-body').length > 0;
+var isIssueContext = $('#reports-list').length > 0;
 
-    // Проверяем остались ли отчеты
-    if ($('.reports tbody tr').length === 0) {
-        $('.reports tbody').append('<tr><td colspan="5"><%= j l(:label_no_reports) %></td></tr>');
-    }
-});
+if (isReportContext) {
+    // Удаление из контекста отчета
+    var $row = $('#issue-row-<%= @issue.id %>');
+    $row.fadeOut('fast', function() {
+        $(this).remove();
 
-// Показываем уведомление об успешном удалении
-var $notification = $('<div class="flash notice" style="display: none;"></div>')
-  .html('<%= j l(:notice_successful_delete) %>');
-$('#content').prepend($notification);
-$notification.slideDown();
+        // Обновляем select2 если он есть
+        var $issuesSelect = $('#issues-select');
+        if ($issuesSelect.length) {
+            $issuesSelect.find('option[value="<%= @issue.id %>"]').remove();
+            $issuesSelect.trigger('change');
+        }
 
-setTimeout(function() {
-    $notification.slideUp(function() { $(this).remove(); });
-}, 3000);
+        // Показываем сообщение о пустом списке если нужно
+        if ($('#report-issues-body tr').length === 0) {
+            $('#report-issues-body').html('<tr class="no-data"><td colspan="10"><%= j l(:label_no_data) %></td></tr>');
+        }
+    });
+} else if (isIssueContext) {
+    // Удаление из контекста задачи
+    var $row = $('tr[data-id="<%= @report.id %>"]');
+    $row.fadeOut('fast', function() {
+        $(this).remove();
 
-// Обновляем select2 если он существует
-var $issuesSelect = $('#issues-select');
-if ($issuesSelect.length) {
-    $issuesSelect.find('option[value="<%= @issue_id %>"]').remove();
-    $issuesSelect.trigger('change');
+        // Показываем сообщение о пустом списке если нужно
+        if ($('#reports-list tr').length === 0) {
+            $('#reports-list').html('<tr class="no-data"><td colspan="5"><%= j l(:label_no_data) %></td></tr>');
+        }
+    });
 }
 
-// Обработка элементов массового удаления
-['select-all-issues', 'delete-selected-issues'].forEach(function(id) {
-    var element = document.getElementById(id);
-    if (element) {
-        id === 'select-all-issues' ? element.checked = false : element.style.display = 'none';
-    }
-});
-<% else %>
-var $error = $('<div class="flash error" style="display: none;"></div>')
-  .html('<%= j l(:error_unable_delete) %>');
-$('#content').prepend($error);
-$error.slideDown();
+// Показываем уведомление
+var $notice = $('<div class="flash notice"></div>').html('<%= j l(:notice_successful_delete) %>');
+$('#content').prepend($notice);
+setTimeout(function() { $notice.fadeOut(function() { $(this).remove(); }); }, 2000);
 
-setTimeout(function() {
-    $error.slideUp(function() { $(this).remove(); });
-}, 3000);
+<% else %>
+alert('<%= j l(:error_unable_delete) %>');
 <% end %>

@@ -116,3 +116,5 @@ ru:
   report_already_added: "Отчет уже добавлен к задаче."
   notice_report_added: "Отчет успешно добавлен."
   notice_report_removed: "Отчет успешно удалён."
+
+  label_no_available_reports: "Нет доступных отчетов"

@@ -138,21 +138,40 @@ class ReportIssuesController < ApplicationController
   # end
 
   def remove_issue
-    if params[:issue_id].present?
-      @issue = Issue.find(params[:issue_id])
-    end
+    issue_id = params[:issue_id]
+    @issue = Issue.find(issue_id)
 
-    if @report.issue_reports.where(issue_id: @issue.id).destroy_all
-      @report.touch
-      respond_to do |format|
-        format.html { redirect_back(fallback_location: project_report_path(@project, @report)) }
-        format.js
+    ActiveRecord::Base.transaction do
+      if @report.issue_reports.where(issue_id: issue_id).destroy_all
+        @report.touch
+
+        respond_to do |format|
+          format.html { redirect_back(fallback_location: project_report_path(@project, @report)) }
+          format.js
+        end
+      else
+        raise ActiveRecord::Rollback
+        respond_to do |format|
+          format.html {
+            redirect_back(
+              fallback_location: project_report_path(@project, @report),
+              alert: l(:error_unable_delete)
+            )
+          }
+          format.js { render js: "alert('#{l(:error_unable_delete)}');" }
+        end
       end
-    else
-      respond_to do |format|
-        format.html { redirect_back(fallback_location: project_report_path(@project, @report), alert: l(:error_unable_delete)) }
-        format.js { render js: "alert('#{l(:error_unable_delete)}');" }
-      end
+    end
+  rescue => e
+    Rails.logger.error "Error in remove_issue: #{e.message}\n#{e.backtrace.join("\n")}"
+    respond_to do |format|
+      format.html {
+        redirect_back(
+          fallback_location: project_report_path(@project, @report),
+          alert: l(:error_unable_delete)
+        )
+      }
+      format.js { render js: "alert('#{l(:error_unable_delete)}');" }
     end
   end
 
