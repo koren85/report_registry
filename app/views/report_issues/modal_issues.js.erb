@@ -3,10 +3,16 @@
     modal.html("<%= escape_javascript(render partial: 'modal_issues') %>");
     showModal("ajax-modal", "<%= l(:label_add_issues_to_report) %>");
 
-    // Инициализация обработчиков событий после загрузки модального окна
-    var toggleAll = $('#check_all');
-    toggleAll.on('change', function() {
-        var isChecked = $(this).prop('checked');
-        $('.issues-selection input[type="checkbox"]').prop('checked', isChecked);
-    });
+    // Добавляем обработчик после рендеринга модального окна
+    if (typeof IssuesModalHandler !== 'undefined') {
+        console.log('Initializing IssuesModalHandler...');
+        IssuesModalHandler.initialize();
+    } else {
+        console.error('IssuesModalHandler not found! Loading script...');
+        // Загружаем скрипт если он еще не загружен
+        $.getScript('<%= javascript_path('modal_issues_handler') %>', function() {
+            console.log('IssuesModalHandler script loaded');
+            IssuesModalHandler.initialize();
+        });
+    }
 })();

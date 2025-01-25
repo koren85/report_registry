@@ -27,3 +27,45 @@
 #select-all-issues {
     cursor: pointer;
 }
+
+.sort {
+    cursor: pointer;
+    position: relative;
+    padding-right: 20px !important;
+}
+
+.sort:after {
+    content: '↕';
+    position: absolute;
+    right: 5px;
+    color: #999;
+}
+
+.sort.sorted-asc:after {
+    content: '↑';
+    color: #333;
+}
+
+.sort.sorted-desc:after {
+    content: '↓';
+    color: #333;
+}
+
+#issues-search-input {
+    padding: 6px 10px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    margin-bottom: 10px;
+    font-size: 14px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.issues-selection {
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+.issues-selection table {
+    margin-top: 0;
+}

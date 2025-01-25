@@ -121,4 +121,17 @@ class ReportQuery < Query
     values += User.active.sorted.map { |u| [u.name, u.id.to_s] }
     values
   end
+
+  def project_statement
+    project_clauses = []
+
+    if project && !project.descendants.active.empty?
+      ids = [project.id] + project.descendants.active.pluck(:id)
+      project_clauses << "#{Project.table_name}.id IN (#{ids.join(',')})"
+    elsif project
+      project_clauses << "#{Project.table_name}.id = #{project.id}"
+    end
+
+    project_clauses.any? ? project_clauses.join(' AND ') : nil
+  end
 end

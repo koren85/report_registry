@@ -1,29 +1,34 @@
+<%# app/views/report_issues/_modal_issues.html.erb %>
 <div class="box">
   <%= form_tag add_issues_report_report_issues_path(@report), method: :post, remote: true do %>
-    <div class="search-box">
+    <%= hidden_field_tag :authenticity_token, form_authenticity_token %>
+    <div class="search-box" style="margin-bottom: 15px;">
       <%= text_field_tag 'search', nil,
                          class: 'autocomplete',
-                         'data-url': search_report_report_issues_path(@report),
+                         id: 'issues-search-input',
+                         style: 'width: 100%; padding: 5px;',
+                         'data-url': search_report_report_issues_path(@report, format: :json),
+                         'data-auth-token': form_authenticity_token,
                          placeholder: l(:label_search_issues) %>
     </div>
 
     <div class="issues-selection">
-      <table class="list issues">
+      <table class="list issues sortable">
         <thead>
         <tr>
           <th class="checkbox hide-when-print" style="width: 30px;">
             <%= check_box_tag 'check_all', '', false, class: 'toggle-selection' %>
           </th>
-          <th style="width: 50px;">#</th>
-          <th><%= l(:field_subject) %></th>
-          <th style="width: 15%;"><%= l(:field_project) %></th>
-          <th style="width: 15%;"><%= l(:field_version) %></th>
-          <th style="width: 12%;"><%= l(:field_status) %></th>
-          <th style="width: 90px;"><%= l(:field_start_date) %></th>
-          <th style="width: 90px;"><%= l(:field_due_date) %></th>
+          <th style="width: 50px;" class="sort sorted-desc" data-sort="id">#</th>
+          <th class="sort" data-sort="subject"><%= l(:field_subject) %></th>
+          <th style="width: 15%;" class="sort" data-sort="project"><%= l(:field_project) %></th>
+          <th style="width: 15%;" class="sort" data-sort="version"><%= l(:field_version) %></th>
+          <th style="width: 12%;" class="sort" data-sort="status"><%= l(:field_status) %></th>
+          <th style="width: 90px;" class="sort" data-sort="start_date"><%= l(:field_start_date) %></th>
+          <th style="width: 90px;" class="sort" data-sort="due_date"><%= l(:field_due_date) %></th>
         </tr>
         </thead>
-        <tbody>
+        <tbody class="issues-list">
         <% @issues.each do |issue| %>
           <tr>
             <td class="checkbox hide-when-print">

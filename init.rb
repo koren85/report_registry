@@ -29,30 +29,38 @@ Redmine::Plugin.register :report_registry do
 
   # Регистрация модуля в настройках проекта
   project_module :report_registry do
+    # Разрешения для просмотра отчетов
     permission :view_reports, {
       reports: [:index, :show],
-      report_issues: [:index, :modal_issues]
+      report_issues: [:index, :modal_issues, :search]
     }, read: true
 
+    # Разрешения для управления отчетами
     permission :manage_reports, {
       reports: [:new, :create, :edit, :update, :destroy, :approve],
-      report_issues: [:modal_issues, :add_issues, :search, :remove_issue, :add_issue]
+      report_issues: [:modal_issues, :add_issues, :search, :remove_issue, :add_issue, :remove_issues]
     }
 
+    # Разрешение для утверждения отчетов
     permission :approve_reports, {
       reports: [:approve]
     }
 
+    # Глобальные разрешения для просмотра отчетов
     permission :view_reports_global, {
-      reports: [:index, :show]
+      reports: [:index, :show],
+      report_issues: [:index, :modal_issues, :search]
     }, global: true
 
+    # Глобальные разрешения для управления отчетами
     permission :manage_reports_global, {
-      reports: [:new, :create, :edit, :update]
+      reports: [:new, :create, :edit, :update, :destroy],
+      report_issues: [:modal_issues, :add_issues, :search, :remove_issue, :add_issue, :remove_issues]
     }, global: true
 
+    # Разрешение для удаления задач из отчета
     permission :remove_issues, {
-      report_issues: [:remove_issues]
+      report_issues: [:remove_issues, :remove_issue]
     }
   end
 

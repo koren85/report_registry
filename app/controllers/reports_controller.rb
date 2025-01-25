@@ -42,39 +42,36 @@ class ReportsController < ApplicationController
     retrieve_query
     @query.project = @project if @project
 
-    scope = @query.base_scope
+    scope = Report.joins(:project)
+                 .includes(:project)
+                 .references(:project)
 
-    if @project
-      scope = scope.where(project_id: @project.id) # Здесь теперь используется числовой id проекта
+  if @project
+    scope = scope.where(project_id: @project.id)
+  elsif @query.statement.present?
+    # Находим ID проекта по identifier и подставляем в условие
+    if @query.filters["project_id"].present?
+      project = Project.find_by(identifier: @query.filters["project_id"][:values].first)
+      scope = project ? scope.where(project_id: project.id) : scope.none
     end
+  end
 
-    sort_init(@query.sort_criteria.empty? ? [["#{Report.table_name}.id", 'desc']] : @query.sort_criteria)
-    sort_update(@query.sortable_columns)
+  sort_init(@query.sort_criteria.empty? ? [["#{Report.table_name}.id", 'desc']] : @query.sort_criteria)
+  sort_update(@query.sortable_columns)
 
-    if @query.valid? && @query.statement.present?
-      scope = scope.where(@query.statement)
-    end
+  scope = scope.reorder(sort_clause) if sort_clause.present?
 
-    if sort_clause.present?
-      scope = scope.order(sort_clause)
-    else
-      scope = scope.order("#{Report.table_name}.id DESC")
-    end
-
-    @item_count = scope.count
-    @item_pages = Paginator.new @item_count, per_page_option, params['page']
-    @items = scope.limit(@item_pages.per_page).offset(@item_pages.offset)
+  @item_count = scope.count
+  @item_pages = Paginator.new @item_count, per_page_option, params['page']
+  @items = scope.limit(@item_pages.per_page).offset(@item_pages.offset).to_a
 
     respond_to do |format|
       format.html
       format.api
     end
-  rescue ActiveRecord::RecordNotFound => e
+  rescue StandardError => e
     logger.error "Error in index action: #{e.message}\n#{e.backtrace.join("\n")}"
-    render_404
-  rescue => e
-    logger.error "Unexpected error in index action: #{e.message}\n#{e.backtrace.join("\n")}"
-    render_500
+    render_error message: :error_internal_error
   end
 
   def new
@@ -181,7 +178,16 @@ class ReportsController < ApplicationController
 
   private
 
+  def render_error(options={})
+    options = options.merge(status: 500)
+    render_error_status(options)
+  end
 
+  def render_error_status(options={})
+    options = {status: 500, layout: true}.merge(options)
+    @project = nil
+    render template: 'common/error', status: options[:status], layout: options[:layout]
+  end
 
   def ensure_project_module_enabled
     return true if User.current.admin? || @project.nil?
@@ -196,6 +202,12 @@ class ReportsController < ApplicationController
     @query = ReportQuery.new(name: "_")
 
     if params[:set_filter] || session[:reports_query].nil?
+      # Преобразуем project_id в число, если он присутствует
+      if params[:project_id].present?
+        project = Project.find_by(identifier: params[:project_id])
+        params[:project_id] = project.id if project
+      end
+
       @query.build_from_params(params)
       session[:reports_query] = {
         filters: @query.filters,

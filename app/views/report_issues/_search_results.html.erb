@@ -1,0 +1,21 @@
+<%# app/views/report_issues/_search_results.html.erb %>
+<% if @issues.any? %>
+  <% @issues.each do |issue| %>
+    <tr>
+      <td class="checkbox hide-when-print">
+        <%= check_box_tag 'issue_ids[]', issue.id, false, id: nil %>
+      </td>
+      <td class="id"><%= link_to issue.id, issue_path(issue) %></td>
+      <td class="subject"><%= h(issue.subject) %></td>
+      <td class="project"><%= h(issue.project.name) %></td>
+      <td class="version"><%= h(issue.fixed_version.try(:name)) %></td>
+      <td class="status"><%= h(issue.status.name) %></td>
+      <td class="start_date"><%= format_date(issue.start_date) %></td>
+      <td class="due_date"><%= format_date(issue.due_date) %></td>
+    </tr>
+  <% end %>
+<% else %>
+  <tr>
+    <td colspan="8" class="text-center"><%= l(:label_no_data) %></td>
+  </tr>
+<% end %>
