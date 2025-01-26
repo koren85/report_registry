@@ -65,7 +65,9 @@ var IssuesModalHandler = (function() {
             data: {
                 q: searchValue,
                 sort: sortColumn,
-                direction: sortDirection
+                direction: sortDirection,
+                project_id: $('#report_project_id').val(),
+                version_id: $('#version-select').val()
             },
             success: function(response) {
                 $tbody.empty().append(response);

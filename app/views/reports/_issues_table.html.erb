@@ -5,11 +5,19 @@
       <h3><%= l(:label_report_issues) %></h3>
       <% project = @project || @report&.project %>
       <% if project || @report %>
+        <% modal_path = if @report&.persisted?
+                         modal_issues_report_report_issues_path(@report)
+                       elsif @project
+                         modal_issues_project_report_report_issues_path(@project, 0)
+                       else
+                         modal_issues_report_report_issues_path(0)
+                       end %>
         <%= link_to l(:button_add_issues),
-                    modal_issues_report_report_issues_path(@report || Report.new(project_id: project&.id)),
+                    modal_path,
                     class: 'button icon icon-add',
                     remote: true,
-                    'data-modal': true %>
+                    'data-modal': true,
+                    'data-project-id': project&.id %>
       <% end %>
       <button id="delete-selected-issues"
               class="button icon icon-del"
