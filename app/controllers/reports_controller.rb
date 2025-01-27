@@ -112,15 +112,10 @@ class ReportsController < ApplicationController
 
   def edit
     @from_global = params[:from_global]
-    @issues = if @project
-                @project.issues
-              elsif @report.project
-                @report.project.issues
-              else
-                []
-              end
-    @versions = @report.project&.versions&.where.not(status: 'closed') || []
-    @projects_with_module = Project.active.has_module(:report_registry) unless @project
+    @project = @report.project unless @project
+    @issues = @project ? @project.issues : []
+    @versions = @project.versions.where.not(status: 'closed')
+    @projects_with_module = Project.active.has_module(:report_registry) if @from_global == 'true'
   end
 
   def update
@@ -131,17 +126,15 @@ class ReportsController < ApplicationController
     if @report.save
       flash[:notice] = l(:notice_successful_update)
       if params[:save_and_continue]
-        redirect_to edit_report_path(@report)
+        redirect_to edit_report_path(@report, from_global: params[:from_global])
       else
-        if params[:from_global] == 'true'
-          redirect_to reports_path
-        else
-          redirect_to project_reports_path(@report.project)
-        end
+        redirect_to(params[:from_global] == 'true' ? reports_path : project_reports_path(@report.project))
       end
     else
-      load_versions
       @from_global = params[:from_global]
+      @project = @report.project unless @project
+      @versions = @project.versions.where.not(status: 'closed')
+      @projects_with_module = Project.active.has_module(:report_registry) if @from_global == 'true'
       render :edit
     end
   end
