@@ -9,7 +9,7 @@ class Report < ActiveRecord::Base
   belongs_to :version, optional: true
 
   # Добавляем валидацию уникальности связи issue_reports
-  has_many :issue_reports, -> { distinct }, dependent: :destroy
+  has_many :issue_reports, dependent: :destroy
   has_many :issues, -> { distinct }, through: :issue_reports
 
 

@@ -130,12 +130,12 @@
                      class: 'select2',
                      id: 'issues-select',
                      style: 'width: 100%;',
-                     data: {
-                       'pre': (@report.issues || []).map { |i| { id: i.id, text: "#{i.id} - #{i.subject}" } },
-                       'search-url': search_report_report_issues_path(@report),
-                       # 'auth-token': form_authenticity_token,  # Добавляем токен
-                       'placeholder': l(:label_issue_search_placeholder)
-                     }
+                     # data: {
+                     #   'pre': (@report.issues || []).map { |i| { id: i.id, text: "#{i.id} - #{i.subject}" } },
+                     #   'search-url': search_report_report_issues_path(@report),
+                     #   # 'auth-token': form_authenticity_token,  # Добавляем токен
+                     #   'placeholder': l(:label_issue_search_placeholder)
+                     # }
                    } %>
     </div>
 
