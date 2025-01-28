@@ -15,6 +15,9 @@ class ReportsController < ApplicationController
   # Потом остальные проверки для не-админов
   before_action :authorize_global, only: [:index, :new, :create], if: -> { !User.current.admin? && @project.nil? }
   before_action :authorize, if: -> { !User.current.admin? && @project.present? }
+  before_action :check_search_permissions, only: [:search]
+
+
 
   def find_optional_project
     return true if params[:project_id].blank? # Если project_id не указан, просто пропускаем
@@ -256,5 +259,17 @@ class ReportsController < ApplicationController
   def load_versions
     @versions = @project&.versions&.where.not(status: 'closed') || []
     @projects_with_module = Project.active.has_module(:report_registry) unless @project
+  end
+
+  def check_search_permissions
+    return true if User.current.admin?
+
+    if @project
+      authorize(@project, :view_issues?) # Изменено с view_reports? на view_issues?
+    else
+      authorize_global(:view_issues) # Изменено для соответствия стандартам Redmine
+    end
+  rescue
+    render_403
   end
 end

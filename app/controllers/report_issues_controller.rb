@@ -5,7 +5,7 @@ class ReportIssuesController < ApplicationController
 
   before_action :find_project_by_params
   before_action :find_issue , only: [:remove_issue, :add_issue]
-  before_action :find_report , only: [:modal_issues, :index, :search, :add_issues, :remove_issue, :remove_issues, :add_issue]
+  before_action :find_report , only: [:modal_issues, :index, :search, :add_issues, :remove_issue, :remove_issues, :add_issue, :select_search]
   before_action :authorize # Оставляем стандартный authorize, так как права уже определены в init.rb
 
   def modal_issues
@@ -27,6 +27,49 @@ class ReportIssuesController < ApplicationController
     end
   end
 
+  def select_search
+    Rails.logger.info "=== Select Search Debug ==="
+    Rails.logger.info "Current user: #{User.current.inspect}"
+    Rails.logger.info "Project: #{@project.inspect}"
+    Rails.logger.info "Report: #{@report.inspect}"
+    Rails.logger.info "Permissions: #{User.current.roles_for_project(@project).map(&:permissions).flatten}"
+
+    @issues = issues_scope
+                .includes(:status, :fixed_version, :project)
+                .where.not(id: @report.issue_ids)
+
+    if params[:q].present?
+      @issues = @issues.where(
+        "CAST(#{Issue.table_name}.id AS TEXT) ILIKE :q OR LOWER(#{Issue.table_name}.subject) ILIKE :q",
+        q: "%#{params[:q].downcase}%"
+      )
+    end
+
+    @issues = apply_sort_to_scope(@issues).limit(100)
+
+    respond_to do |format|
+      format.html { render partial: 'search_results', layout: false }
+      format.js { render partial: 'search_results', layout: false }
+      format.json {
+        render json: @issues.map { |issue| {
+          id: issue.id,
+          text: "##{issue.id} - #{issue.subject}",
+          subject: issue.subject,
+          project: issue.project.name
+        }}
+      }
+    end
+  rescue => e
+    logger.error "Select search error: #{e.message}\n#{e.backtrace.join("\n")}"
+    respond_to do |format|
+      format.html { render_error l(:error_search_failed) }
+      format.js { render js: "alert('#{j l(:error_search_failed)}');" }
+      format.json { render json: { error: l(:error_search_failed) }, status: :unprocessable_entity }
+    end
+  rescue => e
+    Rails.logger.error "Select search error: #{e.message}\n#{e.backtrace.join("\n")}"
+    render json: { error: e.message }, status: :forbidden
+  end
   def search
     Rails.logger.info "Search initiated..."
     Rails.logger.info "Current user: #{User.current.inspect}"
@@ -171,6 +214,11 @@ class ReportIssuesController < ApplicationController
   end
 
   def authorize
+    Rails.logger.info "=== Authorization Debug ==="
+    Rails.logger.info "Action: #{action_name}"
+    Rails.logger.info "Controller: #{controller_name}"
+    Rails.logger.info "Current user permissions: #{User.current.roles_for_project(@project).map(&:permissions).flatten}"
+
     unless User.current.logged?
       respond_to do |format|
         format.html { redirect_to signin_path }
@@ -180,6 +228,11 @@ class ReportIssuesController < ApplicationController
       return false
     end
     super
+  rescue => e
+    Rails.logger.error "Authorization error: #{e.message}"
+    respond_to do |format|
+      format.json { head :forbidden }
+    end
   end
 
   # def find_authentication_token

@@ -47,6 +47,11 @@ $(document).ready(function() {
 
     versionSelect.on('change', function() {
         updateReportName();
+        // Сбрасываем select2 с задачами при изменении версии
+        var $issuesSelect = $('#issues-select');
+        if ($issuesSelect.length) {
+            $issuesSelect.val(null).trigger('change');
+        }
     });
 
     // Инициализация при загрузке

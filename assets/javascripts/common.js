@@ -99,61 +99,9 @@ function formatIssueSelection(issue) {
     return issue.text || `${issue.id} - ${issue.subject}`;
 }
 
+
 // Инициализация при загрузке страницы
 $(document).ready(function() {
-    // Инициализация select2 для задач
-    var $issuesSelect = $('#issues-select');
-
-    if ($issuesSelect.length) {
-        $issuesSelect.select2({
-            width: '100%',
-            multiple: true,
-            data: $issuesSelect.data('pre'),
-            ajax: {
-                url: function() {
-                    var reportId = $('#report-form').data('report-id');
-                    return '/reports/' + reportId + '/report_issues/search';
-                },
-                dataType: 'json',
-                delay: 250,
-                data: function(params) {
-                    return {
-                        q: params.term,
-                        page: params.page
-                    };
-                },
-                processResults: function(data, params) {
-                    return {
-                        results: data.map(function(issue) {
-                            return {
-                                id: issue.id,
-                                text: `${issue.id} - ${issue.subject}`,
-                                project: issue.project
-                            };
-                        })
-                    };
-                },
-                cache: true
-            },
-            minimumInputLength: 1,
-            templateResult: formatIssue,
-            templateSelection: formatIssueSelection
-        });
-
-        // Обработчик изменений для синхронизации с формой
-        $issuesSelect.on('change', function(e) {
-            var selectedIds = $(this).val() || [];
-            // Обновляем скрытые поля с issue_ids
-            $('#report-form').find('input[name="report[issue_ids][]"]').remove();
-            selectedIds.forEach(function(id) {
-                $('<input>').attr({
-                    type: 'hidden',
-                    name: 'report[issue_ids][]',
-                    value: id
-                }).appendTo('#report-form');
-            });
-        });
-    }
 
     // Обработчик ручного изменения названия
     $('#report_name').on('input', function() {

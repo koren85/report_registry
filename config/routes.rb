@@ -6,6 +6,7 @@ Rails.application.routes.draw do
       collection do
         get 'modal_issues'
         get 'search'
+        get 'select_search' # новый для select2 в форме
         post 'add_issues'
         delete 'remove_issues'
         delete 'remove_issue'
@@ -14,6 +15,8 @@ Rails.application.routes.draw do
     end
     member do
       patch 'approve'
+      # Добавляем стандартный маршрут для поиска задач в отчете
+      get 'issues/search', to: 'report_issues#search'
     end
     collection do
       get 'load_project_versions'
@@ -26,6 +29,7 @@ Rails.application.routes.draw do
         collection do
           get 'modal_issues'
           get 'search'
+          get 'select_search' # новый для select2 в форме
           post 'add_issues'
           delete 'remove_issues'
           delete 'remove_issue'
@@ -35,6 +39,8 @@ Rails.application.routes.draw do
       end
       member do
         patch 'approve'
+        # Добавляем стандартный маршрут для поиска задач в отчете в контексте проекта
+        get 'issues/search', to: 'report_issues#search'
       end
       collection do
         get 'load_project_versions'

@@ -1,4 +1,5 @@
-<%= form_with(model: [@project, @report], local: true, id: 'report-form') do |f| %>
+<%= form_with(model: [@project, @report], local: true, id: 'report-form',
+              data: { report_id: @report.id }) do |f| %>
   <div class="box">
     <div class="form-field width-100">
       <%= f.label :name, l(:field_name) %>
@@ -122,19 +123,20 @@
   <div class="box">
     <h3><%= l(:field_issues) %></h3>
     <div class="issues-selection-container">
-      <p>
-        <%= f.select :issue_ids,
-                     (@report.issues || []).map { |i| [i.to_s, i.id] },
-                     {},
-                     { multiple: true,
-                       class: 'select2',
-                       id: 'issues-select',
-                       style: 'width: 100%;',
-                       data: {
-                         'pre': (@report.issues || []).map { |i| { id: i.id, text: "#{i.id} - #{i.subject}" } }
-                       }
-                     } %>
-      </p>
+      <%= f.select :issue_ids,
+                   (@report.issues || []).map { |i| [i.to_s, i.id] },
+                   {},
+                   { multiple: true,
+                     class: 'select2',
+                     id: 'issues-select',
+                     style: 'width: 100%;',
+                     data: {
+                       'pre': (@report.issues || []).map { |i| { id: i.id, text: "#{i.id} - #{i.subject}" } },
+                       'search-url': search_report_report_issues_path(@report),
+                       # 'auth-token': form_authenticity_token,  # Добавляем токен
+                       'placeholder': l(:label_issue_search_placeholder)
+                     }
+                   } %>
     </div>
 
     <%= render 'issues_table' %>
@@ -166,4 +168,5 @@
   <%= javascript_include_tag 'common', plugin: 'report_registry' %>
   <%= javascript_include_tag 'project_versions', plugin: 'report_registry' %>
   <%= javascript_include_tag 'date_period_handler', plugin: 'report_registry' %>
+  <%= javascript_include_tag 'issues_select_handler', plugin: 'report_registry' %>
 <% end %>
