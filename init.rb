@@ -4,6 +4,8 @@ require File.expand_path('../lib/reports_hook_listener', __FILE__)
 require File.expand_path('../lib/project_patch', __FILE__)
 require File.expand_path('../app/controllers/reports_controller', __FILE__)
 require File.expand_path('../app/controllers/report_issues_controller', __FILE__)
+require File.expand_path('../lib/report_registry/issue_query_patch', __FILE__)
+
 # require 'report_registry/hooks'
 #
 # Rails.application.config.to_prepare do

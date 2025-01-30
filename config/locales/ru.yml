@@ -125,3 +125,7 @@ ru:
   error_not_authorized: "У вас нет прав на изменение названия задачи"
   error_not_found: "Задача не найдена"
   success_title_updated: "Название задачи успешно обновлено"
+
+  field_report: "Отчет"
+  field_report_id: "Отчет"
+  label_report_plural: "Отчеты"
