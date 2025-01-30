@@ -136,6 +136,52 @@ function initializeReportIssues() {
 // Инициализация при загрузке страницы
 $(document).ready(function() {
     initializeReportIssues();
+
+
+        // Функция для автоматической подстройки высоты
+        function autoResizeTextarea(textarea) {
+            textarea.style.height = 'auto';
+            textarea.style.height = (textarea.scrollHeight) + 'px';
+        }
+
+        // Применяем авторазмер ко всем полям при загрузке
+        $('.report-title-field').each(function() {
+            autoResizeTextarea(this);
+        });
+
+        // Обновляем размер при вводе текста
+        $(document).on('input', '.report-title-field', function() {
+            autoResizeTextarea(this);
+        });
+        // Обработчик изменения названия задачи
+        $(document).on('change', '.report-title-field', function() {
+            var $field = $(this);
+            var url = $field.data('url');
+            var originalValue = $field.data('original-value');
+
+            $.ajax({
+                url: url,
+                type: 'PATCH',
+                data: {
+                    report_title: $field.val()
+                },
+                headers: {
+                    'X-CSRF-Token': $('meta[name="csrf-token"]').attr('content')
+                },
+                dataType: 'json',
+                success: function(response) {
+                    // Обновляем original-value в случае успеха
+                    $field.data('original-value', $field.val());
+                    // Добавляем эффект подсветки для индикации успешного сохранения
+                    $field.closest('td').effect('highlight', {}, 1000);
+                },
+                error: function(xhr) {
+                    // Возвращаем предыдущее значение в случае ошибки
+                    alert(xhr.responseJSON?.error || 'Error updating title');
+                    $field.val(originalValue);
+                }
+            });
+        });
 });
 
 // Реинициализация после AJAX запросов

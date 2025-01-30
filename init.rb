@@ -41,6 +41,13 @@ Redmine::Plugin.register :report_registry do
       report_issues: [:modal_issues, :add_issues, :search, :select_search, :remove_issue, :add_issue, :remove_issues]
     }
 
+    # права изменения имени задачи в отчете
+    permission :edit_report_issue_titles,
+                    { report_issues: [:update_title] },
+                    read: true,
+                    require: :member
+
+
     # Разрешение для утверждения отчетов
     permission :approve_reports, {
       reports: [:approve]

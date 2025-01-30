@@ -69,3 +69,32 @@
 .issues-selection table {
     margin-top: 0;
 }
+
+/* assets/stylesheets/issues_table.css */
+
+/* Добавляем стили для поля report_title */
+.report-title-field {
+    width: 100%;          /* Поле занимает всю ширину ячейки */
+    min-width: 300px;     /* Минимальная ширина */
+    resize: vertical;     /* Позволяет изменять высоту поля */
+    min-height: 24px;     /* Минимальная высота */
+    height: auto;         /* Автоматическая высота */
+    box-sizing: border-box; /* Учитываем padding при расчете ширины */
+    padding: 5px;          /* Добавляем отступы */
+    margin: 0;            /* Убираем внешние отступы */
+    line-height: 1.5;     /* Межстрочный интервал */
+    font-size: 12px;      /* Размер шрифта */
+}
+
+/* Стили для ячейки таблицы с полем report_title */
+.report-title {
+    min-width: 300px;     /* Минимальная ширина ячейки */
+    max-width: 500px;     /* Максимальная ширина ячейки */
+    width: auto;          /* Автоматическая ширина */
+}
+
+/* Стили для активного поля ввода */
+.report-title-field:focus {
+    outline: 1px solid #2996cc;  /* Подсветка при фокусе */
+    box-shadow: 0 0 3px rgba(41, 150, 204, 0.4);  /* Тень при фокусе */
+}

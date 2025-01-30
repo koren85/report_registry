@@ -34,6 +34,7 @@
         <th><input type="checkbox" id="select-all-issues" /></th>
         <th>#</th>
         <th><%= l(:field_subject) %></th>
+        <th><%= l(:field_report_title) %></th> <!-- Новый заголовок -->
         <th><%= l(:field_status) %></th>
         <th><%= l(:field_project) %></th>
         <th><%= l(:field_version) %></th>
@@ -51,6 +52,7 @@
 </div>
 
 <% content_for :header_tags do %>
+  <%= javascript_include_tag 'report_titles', plugin: 'report_registry' %>
   <%= javascript_include_tag 'issues_table', plugin: 'report_registry' %>
   <%= stylesheet_link_tag 'issues_table', plugin: 'report_registry' %>
   <%= stylesheet_link_tag 'modal_window', plugin: 'report_registry' %>

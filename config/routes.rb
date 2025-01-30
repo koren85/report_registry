@@ -12,6 +12,10 @@ Rails.application.routes.draw do
         delete 'remove_issue'
         post 'add', action: 'add_issue'
       end
+      # Добавляем маршрут для обновления названия задачи
+      member do
+        patch 'update_title'
+      end
     end
     member do
       patch 'approve'
@@ -35,6 +39,10 @@ Rails.application.routes.draw do
           delete 'remove_issue'
           delete 'remove_single_issue/:issue_id', action: 'remove_issue', as: 'remove_single_issue'
           post 'add', action: 'add_issue'
+        end
+        # Добавляем маршрут для обновления названия задачи
+        member do
+          patch 'update_title'
         end
       end
       member do

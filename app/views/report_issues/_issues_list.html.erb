@@ -1,10 +1,33 @@
 <!--# app/views/report_issues/_issues_list.html.erb-->
 <% if @report.issues.any? %>
   <% @report.issues.includes(:status, :fixed_version, :project, :parent).each do |issue| %>
+    <% issue_report = @report.issue_reports.find_by(issue_id: issue.id) %>
     <tr id="issue-row-<%= issue.id %>" data-issue-id="<%= issue.id %>">
       <td><%= check_box_tag 'issue_ids[]', issue.id, false, class: 'issue-checkbox' %></td>
       <td><%= link_to issue.id, issue_path(issue) %></td>
       <td><%= link_to issue.subject, project_issue_path(issue.project, issue) %></td>
+
+      <!--добаление поля имени задачи для отчета-->
+      <td class="report-title">
+        <% if User.current.allowed_to?(:edit_report_issue_titles, @project) %>
+          <%= text_area_tag "issue_report[report_title]",
+                            issue_report&.report_title || issue.subject,
+                            class: 'report-title-field',
+                            rows: 2, # Начальное количество строк
+                            data: {
+                              issue_id: issue.id,
+                              issue_report_id: issue_report.id ,
+                              report_id: @report.id,
+                              original_value: issue_report&.report_title || issue.subject,
+                              url: @project ?
+                                     update_title_project_report_report_issue_path(@project, @report, issue_report || issue) :
+                                     update_title_report_report_issue_path(@report, issue_report || issue)
+                            } %>
+        <% else %>
+          <%= simple_format(issue_report&.report_title || issue.subject) %>
+        <% end %>
+      </td>
+
       <td><%= issue.status.name %></td>
       <td><%= issue.project.name %></td>
       <td><%= issue.fixed_version.try(:name) %></td>

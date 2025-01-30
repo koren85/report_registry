@@ -8,6 +8,36 @@ class ReportIssuesController < ApplicationController
   before_action :find_report , only: [:modal_issues, :index, :search, :add_issues, :remove_issue, :remove_issues, :add_issue, :select_search]
   before_action :authorize # Оставляем стандартный authorize, так как права уже определены в init.rb
 
+  # В файле app/controllers/report_issues_controller.rb
+
+  def update_title
+    # Находим IssueReport напрямую
+    @issue_report = @report.issue_reports.find_by(id: params[:id])
+
+    if @issue_report.nil?
+      respond_to do |format|
+        format.json { render json: { error: l(:error_not_found) }, status: :not_found }
+      end
+      return
+    end
+
+    if User.current.allowed_to?(:edit_report_issue_titles, @project)
+      @issue_report.report_title = params[:report_title]
+      if @issue_report.save
+        respond_to do |format|
+          format.json { render json: { success: true } }
+        end
+      else
+        respond_to do |format|
+          format.json { render json: { error: l(:error_update_failed) }, status: :unprocessable_entity }
+        end
+      end
+    else
+      respond_to do |format|
+        format.json { render json: { error: l(:error_not_authorized) }, status: :forbidden }
+      end
+    end
+  end
   def modal_issues
     @issues = issues_scope
                 .where.not(id: @report.issue_ids)
@@ -106,7 +136,12 @@ class ReportIssuesController < ApplicationController
       # Массовое добавление
       new_issue_ids = params[:issue_ids].uniq - @report.issue_ids.map(&:to_s)
       @issues = Issue.where(id: new_issue_ids)
-      @report.issues << @issues
+     @issues.each do |issue|
+      @report.issue_reports.create(
+        issue: issue,
+        report_title: issue.subject # Устанавливаем начальное значение
+      )
+    end
 
       # Обновление отчёта
       @report.updated_by = User.current.id
@@ -116,7 +151,10 @@ class ReportIssuesController < ApplicationController
       # Одиночное добавление
       @issue = Issue.find(params[:issue_id])
       unless @report.issues.include?(@issue)
-        @report.issues << @issue
+        @report.issue_reports.create(
+        issue: @issue,
+        report_title: @issue.subject # Устанавливаем начальное значение
+      )
         @report.updated_by = User.current.id
         @report.updated_at = Time.current
         @report.save
@@ -175,7 +213,7 @@ class ReportIssuesController < ApplicationController
       format.html { redirect_to project_issue_path(@project, @issue), alert: 'Произошла ошибка при добавлении отчета.' }
     end
   end
-  
+
   def remove_issue
     if @report.issue_reports.where(issue_id: @issue.id).destroy_all
       @report.touch
