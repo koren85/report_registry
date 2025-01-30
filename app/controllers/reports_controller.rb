@@ -49,14 +49,14 @@ class ReportsController < ApplicationController
                  .includes(:project)
                  .references(:project)
 
+  # Добавляем базовые условия для проекта
   if @project
     scope = scope.where(project_id: @project.id)
-  elsif @query.statement.present?
-    # Находим ID проекта по identifier и подставляем в условие
-    if @query.filters["project_id"].present?
-      project = Project.find_by(identifier: @query.filters["project_id"][:values].first)
-      scope = project ? scope.where(project_id: project.id) : scope.none
-    end
+  end
+
+  # Добавляем условия фильтрации из @query
+  if @query.statement.present?
+    scope = scope.where(@query.statement)
   end
 
   sort_init(@query.sort_criteria.empty? ? [["#{Report.table_name}.id", 'desc']] : @query.sort_criteria)

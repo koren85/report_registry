@@ -29,7 +29,7 @@ ru:
   field_issues: 'Задачи'
   label_report_details: 'Детали отчета'
   field_enabled_projects: 'Включенные проекты'
-  field_version: 'Версия'
+  field_version: 'Контракт'
   label_tasks: 'Связанные задачи'
   label_no_tasks: 'Нет связанных задач'
   field_task_id: 'ID задачи'
@@ -50,7 +50,7 @@ ru:
   label_issue_id: "#"
   label_issue_subject: "Тема"
   label_issue_status: "Статус"
-  label_issue_version: "Версия"
+  label_issue_version: "Контракт"
   label_issue_start_date: "Дата начала"
   label_issue_due_date: "Срок завершения"
   label_issue_parent: "Родительская задача"
