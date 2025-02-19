@@ -15,6 +15,7 @@ Rails.application.routes.draw do
       # Добавляем маршрут для обновления названия задачи
       member do
         patch 'update_title'
+        patch 'update_hours'  # Добавляем к существующему update_title
       end
     end
     member do
@@ -43,6 +44,7 @@ Rails.application.routes.draw do
         # Добавляем маршрут для обновления названия задачи
         member do
           patch 'update_title'
+          patch 'update_hours'  # Добавляем к существующему update_title
         end
       end
       member do

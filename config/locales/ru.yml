@@ -131,3 +131,6 @@ ru:
   label_report_plural: "Отчеты"
 
   text_hours_source_info: "Источник для часов в отчет"
+
+  label_total_hours: "Часов в отчете"
+  field_reported_hours: "Часы"

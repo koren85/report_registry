@@ -49,6 +49,11 @@ Redmine::Plugin.register :report_registry do
                     read: true,
                     require: :member
 
+    # права изменения часов в отчете
+    permission :edit_report_hours,
+               { report_issues: [:update_hours] },
+               read: true,
+               require: :member
 
     # Разрешение для утверждения отчетов
     permission :approve_reports, {

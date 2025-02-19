@@ -10,6 +10,33 @@ class ReportIssuesController < ApplicationController
 
   # В файле app/controllers/report_issues_controller.rb
 
+  def update_hours
+    @issue_report = @report.issue_reports.find_by(id: params[:id])
+
+    if @issue_report.nil?
+      render_404
+      return
+    end
+
+    if User.current.allowed_to?(:edit_report_hours, @project)
+      reported_hours = params[:reported_hours].to_f
+
+      if reported_hours >= 0
+        @issue_report.reported_hours = reported_hours
+        @issue_report.save
+      else
+        @issue_report.errors.add(:reported_hours, :invalid)
+      end
+    else
+      render_403
+      return
+    end
+
+    respond_to do |format|
+      format.js
+    end
+  end
+
   def update_title
     # Находим IssueReport напрямую
     @issue_report = @report.issue_reports.find_by(id: params[:id])

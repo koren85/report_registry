@@ -1,5 +1,10 @@
 <!--# app/views/report_issues/_issues_list.html.erb-->
 <% if @report.issues.any? %>
+  <% total_hours = @report.issue_reports.sum(:reported_hours) %>
+  <div class="total-hours">
+    <strong><%= l(:label_total_hours) %>:</strong> <%= number_with_precision(total_hours, precision: 2) %>
+  </div>
+
   <% @report.issues.includes(:status, :fixed_version, :project, :parent).each do |issue| %>
     <% issue_report = @report.issue_reports.find_by(issue_id: issue.id) %>
     <tr id="issue-row-<%= issue.id %>" data-issue-id="<%= issue.id %>">
@@ -28,6 +33,28 @@
         <% end %>
       </td>
 
+      <!--добавление поля часов-->
+      <td class="reported-hours">
+        <% if User.current.allowed_to?(:edit_report_issue_titles, @project) %>
+          <%= number_field_tag "issue_report[reported_hours]",
+                              issue_report&.reported_hours,
+                              class: 'reported-hours-field',
+                              min: 0,
+                              step: 0.5,
+                              data: {
+                                issue_id: issue.id,
+                                issue_report_id: issue_report.id,
+                                report_id: @report.id,
+                                original_value: issue_report&.reported_hours,
+                                url: @project ?
+                                       update_hours_project_report_report_issue_path(@project, @report, issue_report || issue) :
+                                       update_hours_report_report_issue_path(@report, issue_report || issue)
+                              } %>
+        <% else %>
+          <%= number_with_precision(issue_report&.reported_hours, precision: 2) %>
+        <% end %>
+      </td>
+
       <td><%= issue.status.name %></td>
       <td><%= issue.project.name %></td>
       <td><%= issue.fixed_version.try(:name) %></td>
@@ -46,6 +73,6 @@
   <% end %>
 <% else %>
   <tr class="no-data">
-    <td colspan="10" class="text-center"><%= l(:label_no_data) %></td>
+    <td colspan="11" class="text-center"><%= l(:label_no_data) %></td>
   </tr>
 <% end %>

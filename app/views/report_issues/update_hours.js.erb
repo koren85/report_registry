@@ -1,0 +1,16 @@
+//# plugins/report_registry/app/views/report_issues/update_hours.js.erb
+
+<% if @issue_report.errors.empty? %>
+// Обновляем общую сумму часов
+$('.total-hours').html("<%= j render partial: 'report_issues/total_hours', locals: { total_hours: @report.issue_reports.sum(:reported_hours) } %>");
+
+// Подсвечиваем обновленную ячейку
+$('#issue-row-<%= @issue_report.issue_id %> .reported-hours').effect('highlight', {}, 1000);
+
+// Показываем уведомление об успехе
+var $notice = $('<div class="flash notice"></div>').html('<%= j l(:notice_successful_update) %>');
+$('#content').prepend($notice);
+setTimeout(function() { $notice.fadeOut(function() { $(this).remove(); }); }, 2000);
+<% else %>
+alert('<%= j @issue_report.errors.full_messages.join(", ") %>');
+<% end %>

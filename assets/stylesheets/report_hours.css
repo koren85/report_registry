@@ -1,0 +1,38 @@
+/* plugins/report_registry/assets/stylesheets/report_hours.css */
+
+.reported-hours-field {
+    width: 80px;
+    text-align: right;
+    padding: 4px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+}
+
+.reported-hours-field:focus {
+    border-color: #0073aa;
+    outline: none;
+    box-shadow: 0 0 3px rgba(0,115,170,0.3);
+}
+
+.reported-hours-field:invalid {
+    border-color: #dc3232;
+    box-shadow: 0 0 3px rgba(220,50,50,0.3);
+}
+
+.total-hours {
+    text-align: right;
+    padding: 10px;
+    margin-bottom: 10px;
+    background-color: #f9f9f9;
+    border: 1px solid #e5e5e5;
+    border-radius: 3px;
+}
+
+.total-hours strong {
+    color: #666;
+}
+
+/* Стили для подсветки при сохранении */
+.ui-effects-highlight {
+    background-color: #d4eeff !important;
+}
