@@ -22,6 +22,23 @@
                        size: 50 %>
     <em class="info"><%= l(:text_custom_field_name_info) %></em>
   </div>
+
+  <div class="form-field">
+    <label><%= l(:label_hours_source) %></label>
+    <%= select_tag 'settings[hours_source]',
+                   options_for_select(
+                     [
+                       [l(:field_estimated_hours), 'estimated_hours'],
+                       [l(:field_spent_hours), 'spent_hours'],
+                       [l(:field_total_estimated_hours), 'total_estimated_hours']
+                     ] +
+                     CustomField.where(type: 'IssueCustomField')
+                              .where(field_format: ['float', 'int'])
+                              .map { |cf| [cf.name, cf.id.to_s] },
+                     @settings['hours_source']
+                   ) %>
+    <em class="info"><%= l(:text_hours_source_info) %></em>
+  </div>
 </div>
 
 <% content_for :header_tags do %>

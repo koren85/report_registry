@@ -129,3 +129,5 @@ ru:
   field_report: "Отчет"
   field_report_id: "Отчет"
   label_report_plural: "Отчеты"
+
+  text_hours_source_info: "Источник для часов в отчет"
