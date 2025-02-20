@@ -14,20 +14,20 @@
 
       <!--добаление поля имени задачи для отчета-->
       <td class="report-title">
-        <% if User.current.allowed_to?(:edit_report_issue_titles, @project) %>
+        <% if controller.action_name == 'edit' && User.current.allowed_to?(:edit_report_issue_titles, @project) %>
           <%= text_area_tag "issue_report[report_title]",
-                            issue_report&.report_title || issue.subject,
-                            class: 'report-title-field',
-                            rows: 2, # Начальное количество строк
-                            data: {
-                              issue_id: issue.id,
-                              issue_report_id: issue_report.id ,
-                              report_id: @report.id,
-                              original_value: issue_report&.report_title || issue.subject,
-                              url: @project ?
-                                     update_title_project_report_report_issue_path(@project, @report, issue_report || issue) :
-                                     update_title_report_report_issue_path(@report, issue_report || issue)
-                            } %>
+                           issue_report&.report_title || issue.subject,
+                           class: 'report-title-field',
+                           rows: 2,
+                           data: {
+                             issue_id: issue.id,
+                             issue_report_id: issue_report.id,
+                             report_id: @report.id,
+                             original_value: issue_report&.report_title || issue.subject,
+                             url: @project ?
+                                    update_title_project_report_report_issue_path(@project, @report, issue_report || issue) :
+                                    update_title_report_report_issue_path(@report, issue_report || issue)
+                           } %>
         <% else %>
           <%= simple_format(issue_report&.report_title || issue.subject) %>
         <% end %>
@@ -35,7 +35,7 @@
 
       <!--добавление поля часов-->
       <td class="reported-hours">
-        <% if User.current.allowed_to?(:edit_report_issue_titles, @project) %>
+        <% if controller.action_name == 'edit' && User.current.allowed_to?(:edit_report_hours, @project) %>
           <%= number_field_tag "issue_report[reported_hours]",
                               issue_report&.reported_hours,
                               class: 'reported-hours-field',
@@ -73,6 +73,6 @@
   <% end %>
 <% else %>
   <tr class="no-data">
-    <td colspan="11" class="text-center"><%= l(:label_no_data) %></td>
+    <td colspan="12" class="text-center"><%= l(:label_no_data) %></td>
   </tr>
 <% end %>
