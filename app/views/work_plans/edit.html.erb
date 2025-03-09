@@ -1,0 +1,141 @@
+<%# app/views/work_plans/edit.html.erb %>
+<% html_title "#{l(:label_work_plan)}: #{@work_plan.name}" %>
+
+<div class="contextual">
+  <%= link_to l(:button_back_to_plan), project_work_plan_path(@project, @work_plan), class: 'icon icon-back' %>
+</div>
+
+<h2 class="plan-title"><%= l(:label_edit_work_plan) %>: <%= @work_plan.name %></h2>
+
+<div class="work-plans">
+  <%= form_for @work_plan,
+               url: project_work_plan_path(@project, @work_plan),
+               html: { method: :put, class: 'work-plan-form' } do |f| %>
+    <%= error_messages_for @work_plan %>
+
+    <div class="box">
+      <h3><%= l(:label_general_info) %></h3>
+
+      <div class="form-field">
+        <%= f.label :name, l(:field_name) %>
+        <%= f.text_field :name, required: true %>
+      </div>
+
+      <div class="splitcontent">
+        <div class="splitcontentleft">
+          <div class="form-field">
+            <%= f.label :year, l(:field_year) %>
+            <%= f.select :year,
+                         ((Date.today.year-3)..(Date.today.year+2)).to_a,
+                         { selected: @work_plan.year },
+                         { required: true, style: "width: 100%" } %>
+          </div>
+        </div>
+        <div class="splitcontentright">
+          <div class="form-field">
+            <%= f.label :status, l(:field_status) %>
+            <%= f.select :status,
+                         [
+                           [l(:"work_plan_status_черновик"), 'черновик'],
+                           [l(:"work_plan_status_утвержден"), 'утвержден'],
+                           [l(:"work_plan_status_закрыт"), 'закрыт']
+                         ],
+                         { selected: @work_plan.status },
+                         { required: true, style: "width: 100%" } %>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-field">
+        <%= f.label :notes, l(:field_notes) %>
+        <%= f.text_area :notes, rows: 5, class: 'wiki-edit' %>
+      </div>
+    </div>
+
+    <% if @categories.any? %>
+      <div class="box">
+        <div class="contextual">
+          <%= link_to l(:button_add_category), new_project_work_plan_work_plan_category_path(@project, @work_plan),
+                      class: 'icon icon-add',
+                      data: { remote: true } %>
+        </div>
+
+        <h3><%= l(:label_work_categories) %></h3>
+        <div class="autoscroll">
+          <table class="list">
+            <thead>
+            <tr>
+              <th><%= l(:field_name) %></th>
+              <th><%= l(:field_plan_work) %></th>
+              <th><%= l(:field_planned_hours) %></th>
+              <th><%= l(:field_tasks_count) %></th>
+              <th></th>
+            </tr>
+            </thead>
+            <tbody>
+            <% @categories.each do |category| %>
+              <tr class="<%= cycle('odd', 'even') %>">
+                <td><%= link_to category.category_name, project_work_plan_work_plan_category_path(@project, @work_plan, category) %></td>
+                <td><%= category.plan_work.name if category.plan_work_exists? %></td>
+                <td class="hours"><%= number_with_precision(category.planned_hours, precision: 2) %></td>
+                <td class="count"><%= category.work_plan_tasks.count %></td>
+                <td class="buttons">
+                  <%= link_to l(:button_edit), edit_project_work_plan_work_plan_category_path(@project, @work_plan, category),
+                              class: 'icon icon-edit',
+                              data: { remote: true } %>
+                  <%= link_to l(:button_delete), project_work_plan_work_plan_category_path(@project, @work_plan, category),
+                              method: :delete,
+                              data: { confirm: l(:text_are_you_sure), remote: true },
+                              class: 'icon icon-del' %>
+                </td>
+              </tr>
+            <% end %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    <% end %>
+
+    <div class="contract-info">
+      <h3><%= l(:label_version_info) %></h3>
+
+      <div class="form-field">
+        <label><%= l(:field_contract_hours) %>:</label>
+        <div class="value"><strong><%= number_with_precision(@version.contract_hours, precision: 2) %></strong></div>
+      </div>
+
+      <div class="form-field">
+        <label><%= l(:field_effective_date) %>:</label>
+        <div class="value"><%= format_date(@version.effective_date) %></div>
+      </div>
+
+      <% if @version.description.present? %>
+        <div class="form-field">
+          <label><%= l(:field_description) %>:</label>
+          <div class="wiki"><%= textilizable(@version.description) %></div>
+        </div>
+      <% end %>
+    </div>
+
+    <div class="form-actions">
+      <%= f.submit l(:button_save), class: 'button-positive' %>
+      <%= link_to l(:button_cancel), project_work_plan_path(@project, @work_plan), class: 'button' %>
+    </div>
+  <% end %>
+</div>
+
+<div id="modal-window" class="work-plan-modal" tabindex="-1"></div>
+
+<% content_for :header_tags do %>
+  <%= stylesheet_link_tag 'work_plans', plugin: 'report_registry' %>
+  <%= javascript_include_tag 'work_plans', plugin: 'report_registry' %>
+
+  <script>
+      $(document).ready(function() {
+          // Активируем wiki-редактор для поля примечаний
+          $('#work_plan_notes').each(function() {
+              new jsToolBar(this);
+          });
+      });
+  </script>
+<% end %>

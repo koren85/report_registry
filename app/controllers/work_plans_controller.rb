@@ -1,9 +1,14 @@
 # app/controllers/work_plans_controller.rb
 class WorkPlansController < ApplicationController
-  before_action :find_project_by_project_id
+  before_action :find_project_by_project_id, except: [:global_index]
   before_action :find_work_plan, only: [:show, :edit, :update, :destroy, :approve, :close]
   before_action :find_version, only: [:new, :create]
-  before_action :authorize
+  # Only authorize actions that require a project context
+  before_action :authorize, except: [:global_index, :show]
+  # Custom authorization for global actions
+  before_action :authorize_global, only: [:global_index]
+  # Special authorization for show action when accessed globally
+  before_action :authorize_show, only: [:show]
 
   helper :sort
   include SortHelper
@@ -36,11 +41,6 @@ class WorkPlansController < ApplicationController
   def global_index
     @project = nil # Явно указываем, что не находимся в контексте проекта
 
-    # Проверяем права для глобального доступа
-    unless User.current.admin? || User.current.allowed_to_globally?(:view_work_plans_global)
-      render_403
-      return
-    end
 
     sort_init 'created_on', 'desc'
     sort_update(
@@ -87,12 +87,6 @@ class WorkPlansController < ApplicationController
     if params[:project_id].blank?
       @project = @work_plan.version.project
 
-      # Проверка прав доступа в глобальном контексте
-      unless User.current.admin? || User.current.allowed_to?(:view_work_plans, @project) ||
-        User.current.allowed_to_globally?(:view_work_plans_global)
-        render_403
-        return
-      end
 
       # Установка флага глобального контекста
       @global_access = true
@@ -271,6 +265,37 @@ class WorkPlansController < ApplicationController
 
   def work_plan_params
     params.require(:work_plan).permit(:name, :year, :status, :notes, :version_id)
+  end
+
+  # Авторизация для глобального списка
+  def authorize_global
+    unless User.current.admin? || User.current.allowed_to_globally?(:view_work_plans_global)
+      render_403
+      return false
+    end
+    true
+  end
+
+  # Специальная авторизация для действия show
+  def authorize_show
+    return true if User.current.admin?
+
+    # Если это глобальный доступ (без project_id)
+    if params[:project_id].blank?
+      if @work_plan && @work_plan.version && @work_plan.version.project
+        project = @work_plan.version.project
+        unless User.current.allowed_to?(:view_work_plans, project) ||
+               User.current.allowed_to_globally?(:view_work_plans_global)
+          render_403
+          return false
+        end
+      else
+        render_404
+        return false
+      end
+    end
+
+    true
   end
 
   # Проверяем доступность PlanWork из плагина westaco_versions

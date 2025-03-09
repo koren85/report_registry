@@ -3,9 +3,9 @@
 
 <div class="contextual">
   <% if @project.versions.where.not(status: 'closed').any? %>
-    <span class="dropdown">
-      <a href="#" class="icon icon-add dropdown-toggle" data-toggle="dropdown"><%= l(:label_create_work_plan) %></a>
-      <ul class="dropdown-menu">
+    <span class="wp-dropdown">
+      <a href="#" class="icon icon-add wp-dropdown-toggle" data-toggle="dropdown"><%= l(:label_create_work_plan) %></a>
+      <ul class="wp-dropdown-menu">
         <% @project.versions.where.not(status: 'closed').each do |version| %>
           <% unless version.work_plan.present? %>
             <li>
@@ -20,109 +20,111 @@
 
 <h2><%= l(:label_work_plans) %></h2>
 
-<% if @work_plans.any? %>
-  <div class="autoscroll">
-    <table class="list work-plans">
-      <thead>
-      <tr>
-        <%= sort_header_tag 'id', caption: '#' %>
-        <%= sort_header_tag 'name', caption: l(:field_name) %>
-        <%= sort_header_tag 'version', caption: l(:field_version) %>
-        <%= sort_header_tag 'year', caption: l(:field_year) %>
-        <%= sort_header_tag 'status', caption: l(:field_status) %>
-        <th><%= l(:field_total_planned_hours) %></th>
-        <th><%= l(:field_contract_hours) %></th>
-        <th><%= l(:field_hours_difference) %></th>
-        <%= sort_header_tag 'created_on', caption: l(:field_created_on) %>
-        <th class="buttons"></th>
-      </tr>
-      </thead>
-      <tbody>
-      <% @work_plans.each do |work_plan| %>
-        <tr class="<%= cycle('odd', 'even') %> <%= 'hours-overrun' if work_plan.hours_overrun? %>">
-          <td class="id"><%= link_to work_plan.id, project_work_plan_path(@project, work_plan) %></td>
-          <td class="name"><%= link_to work_plan.name, project_work_plan_path(@project, work_plan) %></td>
-          <td class="version"><%= link_to work_plan.version.name, version_path(work_plan.version) if work_plan.version %></td>
-          <td class="year"><%= work_plan.year %></td>
-          <td class="status <%= work_plan.status %>"><%= l(:"work_plan_status_#{work_plan.status}") %></td>
-          <td class="hours"><%= number_with_precision(work_plan.total_planned_hours, precision: 2) %></td>
-          <td class="hours"><%= number_with_precision(work_plan.contract_hours, precision: 2) %></td>
-          <td class="hours <%= 'hours-overrun' if work_plan.hours_overrun? %>">
-            <%= number_with_precision(work_plan.hours_difference, precision: 2) %>
-          </td>
-          <td class="created_on"><%= format_time(work_plan.created_at) %></td>
-          <td class="buttons">
-            <% if work_plan.editable? %>
-              <%= link_to l(:button_edit), edit_project_work_plan_path(@project, work_plan), class: 'icon icon-edit' %>
-              <%= link_to l(:button_delete), project_work_plan_path(@project, work_plan),
-                          method: :delete,
-                          data: { confirm: l(:text_are_you_sure) },
-                          class: 'icon icon-del' %>
-            <% end %>
-
-            <% if work_plan.status == 'черновик' && work_plan.editable? %>
-              <%= link_to l(:button_approve), approve_project_work_plan_path(@project, work_plan),
-                          method: :patch,
-                          class: 'icon icon-approve' %>
-            <% end %>
-
-            <% if work_plan.status == 'утвержден' && work_plan.editable? %>
-              <%= link_to l(:button_close), close_project_work_plan_path(@project, work_plan),
-                          method: :patch,
-                          data: { confirm: l(:text_confirm_close_work_plan) },
-                          class: 'icon icon-lock' %>
-            <% end %>
-
-            <% if work_plan.status != 'черновик' %>
-                <span class="dropdown">
-                  <a href="#" class="icon icon-add dropdown-toggle" title="<%= l(:button_create_report) %>" data-toggle="dropdown"></a>
-                  <ul class="dropdown-menu report-by-month">
-                    <li class="dropdown-header"><%= l(:label_create_report_by_month) %></li>
-                    <% (1..12).each do |month| %>
-                      <li>
-                        <%= link_to l(:'date.month_names')[month], create_report_project_work_plan_path(@project, work_plan, month: month, year: work_plan.year),
-                                    method: :post,
-                                    data: { confirm: l(:text_confirm_create_report, month: l(:'date.month_names')[month]) } %>
-                      </li>
-                    <% end %>
-                  </ul>
-                </span>
-            <% end %>
-          </td>
+<div class="work-plans">
+  <% if @work_plans.any? %>
+    <div class="autoscroll">
+      <table class="list work-plans">
+        <thead>
+        <tr>
+          <%= sort_header_tag 'id', caption: '#' %>
+          <%= sort_header_tag 'name', caption: l(:field_name) %>
+          <%= sort_header_tag 'version', caption: l(:field_version) %>
+          <%= sort_header_tag 'year', caption: l(:field_year) %>
+          <%= sort_header_tag 'status', caption: l(:field_status) %>
+          <th><%= l(:field_total_planned_hours) %></th>
+          <th><%= l(:field_contract_hours) %></th>
+          <th><%= l(:field_hours_difference) %></th>
+          <%= sort_header_tag 'created_on', caption: l(:field_created_on) %>
+          <th class="buttons"></th>
         </tr>
-      <% end %>
-      </tbody>
-    </table>
-  </div>
-<% else %>
-  <p class="nodata"><%= l(:label_no_data) %></p>
-<% end %>
+        </thead>
+        <tbody>
+        <% @work_plans.each do |work_plan| %>
+          <tr class="<%= cycle('odd', 'even') %> <%= 'hours-overrun' if work_plan.hours_overrun? %>">
+            <td class="id"><%= link_to work_plan.id, project_work_plan_path(@project, work_plan) %></td>
+            <td class="name"><%= link_to work_plan.name, project_work_plan_path(@project, work_plan) %></td>
+            <td class="version"><%= link_to work_plan.version.name, version_path(work_plan.version) if work_plan.version %></td>
+            <td class="year"><%= work_plan.year %></td>
+            <td class="status <%= work_plan.status %>"><%= l(:"work_plan_status_#{work_plan.status}") %></td>
+            <td class="hours"><%= number_with_precision(work_plan.total_planned_hours, precision: 2) %></td>
+            <td class="hours"><%= number_with_precision(work_plan.contract_hours, precision: 2) %></td>
+            <td class="hours <%= 'hours-overrun' if work_plan.hours_overrun? %>">
+              <%= number_with_precision(work_plan.hours_difference, precision: 2) %>
+            </td>
+            <td class="created_on"><%= format_time(work_plan.created_at) %></td>
+            <td class="buttons">
+              <% if work_plan.editable? %>
+                <%= link_to l(:button_edit), edit_project_work_plan_path(@project, work_plan), class: 'icon icon-edit' %>
+                <%= link_to l(:button_delete), project_work_plan_path(@project, work_plan),
+                            method: :delete,
+                            data: { confirm: l(:text_are_you_sure) },
+                            class: 'icon icon-del' %>
+              <% end %>
+
+              <% if work_plan.status == 'черновик' && work_plan.editable? %>
+                <%= link_to l(:button_approve), approve_project_work_plan_path(@project, work_plan),
+                            method: :patch,
+                            class: 'icon icon-approve' %>
+              <% end %>
+
+              <% if work_plan.status == 'утвержден' && work_plan.editable? %>
+                <%= link_to l(:button_close), close_project_work_plan_path(@project, work_plan),
+                            method: :patch,
+                            data: { confirm: l(:text_confirm_close_work_plan) },
+                            class: 'icon icon-lock' %>
+              <% end %>
+
+              <% if work_plan.status != 'черновик' %>
+                  <span class="wp-dropdown">
+                    <a href="#" class="icon icon-add wp-dropdown-toggle" title="<%= l(:button_create_report) %>" data-toggle="dropdown"></a>
+                    <ul class="wp-dropdown-menu report-by-month">
+                      <li class="wp-dropdown-header"><%= l(:label_create_report_by_month) %></li>
+                      <% (1..12).each do |month| %>
+                        <li>
+                          <%= link_to l(:'date.month_names')[month], create_report_project_work_plan_path(@project, work_plan, month: month, year: work_plan.year),
+                                      method: :post,
+                                      data: { confirm: l(:text_confirm_create_report, month: l(:'date.month_names')[month]) } %>
+                        </li>
+                      <% end %>
+                    </ul>
+                  </span>
+              <% end %>
+            </td>
+          </tr>
+        <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% else %>
+    <p class="nodata"><%= l(:label_no_data) %></p>
+  <% end %>
+</div>
 
 <% content_for :sidebar do %>
-  <h3><%= l(:label_versions) %></h3>
-  <ul class="versions">
-    <% @versions.each do |version| %>
-      <li class="<%= 'has-plan' if version.has_active_plan? %>">
-        <%= link_to_version version %>
-        <% if version.has_active_plan? %>
-          <span class="plan-info">
-            (<%= link_to l(:label_work_plan), project_work_plan_path(@project, version.work_plan) %>)
-          </span>
-        <% else %>
-          <span class="plan-actions">
-            <%= link_to l(:button_create_plan), new_project_version_work_plan_path(@project, version), class: 'icon icon-add' %>
-          </span>
-        <% end %>
-      </li>
+  <div class="work-plans-sidebar">
+    <h3><%= l(:label_versions) %></h3>
+    <ul class="versions">
+      <% @versions.each do |version| %>
+        <li class="<%= 'has-plan' if version.has_active_plan? %>">
+          <%= link_to_version version %>
+          <% if version.has_active_plan? %>
+            <span class="plan-info">
+              (<%= link_to l(:label_work_plan), project_work_plan_path(@project, version.work_plan) %>)
+            </span>
+          <% else %>
+            <span class="plan-actions">
+              <%= link_to l(:button_create_plan), new_project_version_work_plan_path(@project, version), class: 'icon icon-add' %>
+            </span>
+          <% end %>
+        </li>
+      <% end %>
+    </ul>
+
+    <% if User.current.allowed_to?(:manage_versions, @project) %>
+      <p><%= link_to l(:label_version_new), new_project_version_path(@project) %></p>
     <% end %>
-  </ul>
-
-  <% if User.current.allowed_to?(:manage_versions, @project) %>
-    <p><%= link_to l(:label_version_new), new_project_version_path(@project) %></p>
-  <% end %>
+  </div>
 <% end %>
-
-<% html_title l(:label_work_plans) %>
 
 <% content_for :header_tags do %>
   <%= stylesheet_link_tag 'work_plans', plugin: 'report_registry' %>

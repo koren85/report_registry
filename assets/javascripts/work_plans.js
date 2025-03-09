@@ -55,9 +55,29 @@ function initModal() {
     });
 }
 
-// Выпадающие меню
+// Выпадающие меню - обновлено для новых классов
 function initDropdowns() {
     // Показать/скрыть выпадающее меню при клике на его триггер
+    $(document).on('click', '.wp-dropdown-toggle', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        var $menu = $(this).next('.wp-dropdown-menu');
+        $('.wp-dropdown-menu').not($menu).hide();
+        $menu.toggle();
+    });
+
+    // Скрыть выпадающие меню при клике вне их области
+    $(document).on('click', function() {
+        $('.wp-dropdown-menu').hide();
+    });
+
+    // Предотвращение закрытия меню при клике внутри него
+    $(document).on('click', '.wp-dropdown-menu', function(e) {
+        e.stopPropagation();
+    });
+
+    // Для обратной совместимости со старыми меню
     $(document).on('click', '.dropdown-toggle', function(e) {
         e.preventDefault();
         e.stopPropagation();
@@ -67,15 +87,12 @@ function initDropdowns() {
         $menu.toggle();
     });
 
-    // Скрыть выпадающие меню при клике вне их области
-    $(document).on('click', function() {
-        $('.dropdown-menu').hide();
-    });
-
-    // Предотвращение закрытия меню при клике внутри него
     $(document).on('click', '.dropdown-menu', function(e) {
         e.stopPropagation();
     });
+
+    // Сначала скрываем все выпадающие меню
+    $('.wp-dropdown-menu, .dropdown-menu').hide();
 }
 
 // Инициализация Select2

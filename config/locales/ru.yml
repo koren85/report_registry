@@ -146,6 +146,20 @@ ru:
   button_clear: 'Сбросить'
   button_more: 'Больше'
 
+  label_create_categories_from_plan_works: 'Создать категории из плана работ'
+  label_versions: 'Контракты и планы'
+  label_version_info: 'Информация о контракте'
+
+
+  label_edit_work_plan: 'Редактирование плана работ'
+  button_add_category: 'Добавить категорию'
+  text_confirm_close_work_plan: 'Вы действительно хотите закрыть этот план работ? После закрытия план нельзя будет редактировать.'
+  text_confirm_create_report: 'Вы действительно хотите создать отчет за %{month}?'
+
+  label_general_info: 'Основная информация'
+  info: 'Дополнительная информация'
+  text_create_categories_info: 'Система автоматически создаст категории на основе плана работ, указанного в контракте'
+
   label_work_plans: 'Планы работ'
   label_work_plan: 'План работ'
   label_create_work_plan: 'Создать план работ'
@@ -228,9 +242,6 @@ ru:
   error_month_already_exists: 'Месяц уже существует в распределении'
   error_task_already_linked: 'Задача уже связана с отчетом'
 
-  # Тексты подтверждений
-  text_confirm_close_work_plan: 'Вы действительно хотите закрыть этот план работ? После закрытия план нельзя будет редактировать.'
-  text_confirm_create_report: 'Вы действительно хотите создать отчет за %{month}?'
 
   # Подсказки и информация
   text_contract_hours_field_info: 'Выберите кастомное поле, которое содержит информацию о часах по контракту для версий'

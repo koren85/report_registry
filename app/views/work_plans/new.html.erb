@@ -1,0 +1,110 @@
+<%# app/views/work_plans/new.html.erb %>
+<% html_title l(:label_create_work_plan) %>
+
+<div class="contextual">
+  <%= link_to l(:button_back_to_list), project_work_plans_path(@project), class: 'icon icon-back' %>
+</div>
+
+<h2 class="plan-title"><%= l(:label_create_work_plan) %>: <%= h(@version.name) %></h2>
+
+<div class="work-plans">
+  <%= form_for @work_plan,
+               url: project_version_work_plans_path(@project, @version),
+               html: { class: 'work-plan-form' } do |f| %>
+    <%= error_messages_for @work_plan %>
+
+    <%= f.hidden_field :version_id, value: @version.id %>
+
+    <div class="box">
+      <h3><%= l(:label_general_info) %></h3>
+
+      <div class="form-field">
+        <%= f.label :name, l(:field_name) %>
+        <%= f.text_field :name, required: true,
+                         value: "#{@project.name} - #{@version.name} - #{l(:label_work_plan)}" %>
+      </div>
+
+      <div class="splitcontent">
+        <div class="splitcontentleft">
+          <div class="form-field">
+            <%= f.label :year, l(:field_year) %>
+            <%= f.select :year,
+                         ((Date.today.year-3)..(Date.today.year+2)).to_a,
+                         { selected: Date.today.year },
+                         { required: true, style: "width: 100%" } %>
+          </div>
+        </div>
+        <div class="splitcontentright">
+          <div class="form-field">
+            <%= f.label :status, l(:field_status) %>
+            <%= f.select :status,
+                         [
+                           [l(:"work_plan_status_черновик"), 'черновик'],
+                           [l(:"work_plan_status_утвержден"), 'утвержден'],
+                           [l(:"work_plan_status_закрыт"), 'закрыт']
+                         ],
+                         { selected: 'черновик' },
+                         { required: true, style: "width: 100%" } %>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-field">
+        <%= f.label :notes, l(:field_notes) %>
+        <%= f.text_area :notes, rows: 5, class: 'wiki-edit' %>
+      </div>
+
+      <% if defined?(PlanWork) && @version.respond_to?(:plan_works) && @version.plan_works.any? %>
+        <div class="checkbox-field">
+          <div class="checkbox-container">
+            <%= check_box_tag :create_from_plan_works, '1', true %>
+            <%= label_tag :create_from_plan_works, l(:label_create_categories_from_plan_works) %>
+          </div>
+        </div>
+        <p class="info">
+          <em><%= l(:text_create_categories_info) %></em>
+        </p>
+      <% end %>
+    </div>
+
+    <div class="contract-info">
+      <h3><%= l(:label_version_info) %></h3>
+
+      <div class="form-field">
+        <label><%= l(:field_contract_hours) %>:</label>
+        <div class="value"><strong><%= number_with_precision(@version.contract_hours, precision: 2) %></strong></div>
+      </div>
+
+      <div class="form-field">
+        <label><%= l(:field_effective_date) %>:</label>
+        <div class="value"><%= format_date(@version.effective_date) %></div>
+      </div>
+
+      <% if @version.description.present? %>
+        <div class="form-field">
+          <label><%= l(:field_description) %>:</label>
+          <div class="wiki"><%= textilizable(@version.description) %></div>
+        </div>
+      <% end %>
+    </div>
+
+    <div class="form-actions">
+      <%= f.submit l(:button_create), class: 'button-positive' %>
+      <%= link_to l(:button_cancel), project_work_plans_path(@project), class: 'button' %>
+    </div>
+  <% end %>
+</div>
+
+<% content_for :header_tags do %>
+  <%= stylesheet_link_tag 'work_plans', plugin: 'report_registry' %>
+  <%= javascript_include_tag 'work_plans', plugin: 'report_registry' %>
+
+  <script>
+      $(document).ready(function() {
+          // Активируем wiki-редактор для поля примечаний
+          $('#work_plan_notes').each(function() {
+              new jsToolBar(this);
+          });
+      });
+  </script>
+<% end %>
