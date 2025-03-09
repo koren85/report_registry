@@ -16,7 +16,7 @@ module ReportRegistry
             available_columns_without_report(v)
             # Добавляем новую группу для фильтров отчетов
             unless Query.filters_groups.key?(:label_report_plural)
-              Query.filters_groups[:label_report_plural] = [:report_id]
+              Query.filters_groups[:label_report_plural] = [:registry_report_id]
             end
           end
         end

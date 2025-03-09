@@ -1,13 +1,13 @@
 <%# app/views/report_issues/_modal_issues.html.erb %>
 <div class="box">
-  <%= form_tag add_issues_report_report_issues_path(@report), method: :post, remote: true do %>
+  <%= form_tag add_issues_registry_report_report_issues_path(@report), method: :post, remote: true do %>
     <%= hidden_field_tag :authenticity_token, form_authenticity_token %>
     <div class="search-box" style="margin-bottom: 15px;">
       <%= text_field_tag 'search', nil,
                          class: 'autocomplete',
                          id: 'issues-search-input',
                          style: 'width: 100%; padding: 5px;',
-                         'data-url': search_report_report_issues_path(@report, format: :json),
+                         'data-url': search_registry_report_report_issues_path(@report, format: :json),
                          'data-auth-token': form_authenticity_token,
                          placeholder: l(:label_search_issues) %>
     </div>

@@ -66,7 +66,7 @@
       <% available_reports.each do |report| %>
         <li>
           <%= link_to report.name,
-                      add_issues_project_report_report_issues_path(@project, report),
+                      add_issues_project_registry_report_report_issues_path(@project, report),
                       class: 'add-report-link',
                       remote: true,
                       method: :post,

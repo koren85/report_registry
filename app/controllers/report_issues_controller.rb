@@ -291,12 +291,20 @@ class ReportIssuesController < ApplicationController
   end
 
   def find_report_or_init
-    report_id = params[:report_id]
-    @report = if report_id == '0'
+    report_id = params[:report_id] || params[:registry_report_id]
+
+    @report = if report_id.nil?
+                nil
+              elsif report_id == '0'
                 Report.new(project_id: params[:project_id])
               else
-                Report.find(params[:report_id])
+                Report.find(report_id)  # Используем переменную report_id
               end
+
+    # Добавляем защиту от nil
+    if @report.nil? && params[:project_id].present?
+      @report = Report.new(project_id: params[:project_id])
+    end
   end
 
   def find_project_from_report
@@ -390,8 +398,8 @@ class ReportIssuesController < ApplicationController
   def find_project_by_params
     @project = if params[:project_id]
                  Project.find(params[:project_id])
-               elsif params[:report_id]
-                 report = Report.find(params[:report_id])
+               elsif params[:registry_report_id]
+                 report = Report.find(params[:registry_report_id])
                  report.project
                end
 
@@ -408,7 +416,7 @@ class ReportIssuesController < ApplicationController
   end
 
   def find_report
-    @report = Report.find(params[:report_id])
+    @report = Report.find(params[:registry_report_id])
   rescue ActiveRecord::RecordNotFound => e
     Rails.logger.error "Report not found: #{e.message}"
     render_404
@@ -428,7 +436,7 @@ class ReportIssuesController < ApplicationController
   end
 
   def find_project_by_report
-    @report = Report.find_by(id: params[:report_id])
+    @report = Report.find_by(id: params[:registry_report_id])
     @project = @report&.project || Project.find_by(id: params[:project_id])
     unless @project
       render_404

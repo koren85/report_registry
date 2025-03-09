@@ -25,8 +25,8 @@
                              report_id: @report.id,
                              original_value: issue_report&.report_title || issue.subject,
                              url: @project ?
-                                    update_title_project_report_report_issue_path(@project, @report, issue_report || issue) :
-                                    update_title_report_report_issue_path(@report, issue_report || issue)
+                                    update_title_project_registry_report_report_issue_path(@project, @report, issue_report || issue) :
+                                    update_title_registry_report_report_issue_path(@report, issue_report || issue)
                            } %>
         <% else %>
           <%= simple_format(issue_report&.report_title || issue.subject) %>
@@ -47,8 +47,8 @@
                                 report_id: @report.id,
                                 original_value: issue_report&.reported_hours,
                                 url: @project ?
-                                       update_hours_project_report_report_issue_path(@project, @report, issue_report || issue) :
-                                       update_hours_report_report_issue_path(@report, issue_report || issue)
+                                       update_hours_project_registry_report_report_issue_path(@project, @report, issue_report || issue) :
+                                       update_hours_registry_report_report_issue_path(@report, issue_report || issue)
                               } %>
         <% else %>
           <%= number_with_precision(issue_report&.reported_hours, precision: 2) %>
@@ -63,7 +63,7 @@
       <td><%= issue.parent ? "##{issue.parent.id}" : "" %></td>
       <td class="buttons">
         <%= link_to l(:button_delete),
-                    remove_single_issue_project_report_report_issues_path(issue.project, @report, issue_id: issue.id),
+                    remove_single_issue_project_registry_report_report_issues_path(issue.project, @report, issue_id: issue.id),
                     method: :delete,
                     remote: true,
                     class: 'icon icon-del',
