@@ -157,7 +157,7 @@ class RegistryReportsController < ApplicationController
       if params[:save_and_continue]
         redirect_to edit_registry_report_path(@report)
       else
-        redirect_to(@project ? project_registry_reports_path(@project) : reports_path)
+        redirect_to(@project ? project_registry_reports_path(@project) : registry_reports_path)
       end
     else
       load_versions
@@ -174,18 +174,67 @@ class RegistryReportsController < ApplicationController
   end
 
   def update
-    @report.assign_attributes(report_params_with_unique_issues)
+    # Текущие значения до обновления
+    old_values = {
+      period: @report.period,
+      start_date: @report.start_date,
+      end_date: @report.end_date,
+      version_id: @report.version_id
+    }
+
+    Rails.logger.info "Before update values: #{old_values.inspect}"
+    Rails.logger.info "Raw params: #{params.inspect}"
+
+    # Если project_id передается как строковый идентификатор
+    if params[:project_id].present? && !params[:project_id].to_s.match?(/^\d+$/)
+      project = Project.find_by(identifier: params[:project_id])
+      params[:project_id] = project.id if project
+    end
+
+    # Обновляем аттрибуты
+    update_params = report_params_with_unique_issues
+    Rails.logger.info "Permitted params: #{update_params.inspect}"
+
+    # Принудительно устанавливаем нужные атрибуты
+    @report.period = params[:period] if params[:period].present?
+    @report.start_date = params[:start_date] if params[:start_date].present?
+    @report.end_date = params[:end_date] if params[:end_date].present?
+    @report.version_id = params[:version_id] if params[:version_id].present?
+
+    # Затем обновляем остальные атрибуты через mass assignment
+    @report.assign_attributes(update_params.except(:period, :start_date, :end_date, :version_id))
     @report.updated_by = User.current.id
     @report.updated_at = Time.current
 
+    # Проверяем значения после присваивания, но до сохранения
+    intermediate_values = {
+      period: @report.period,
+      start_date: @report.start_date,
+      end_date: @report.end_date,
+      version_id: @report.version_id
+    }
+
+    Rails.logger.info "After assignment, before save: #{intermediate_values.inspect}"
+
+    # Сохраняем отчет
     if @report.save
-      flash[:notice] = l(:notice_successful_update)
+      # Проверяем значения после сохранения
+      saved_values = {
+        period: @report.reload.period,
+        start_date: @report.reload.start_date,
+        end_date: @report.reload.end_date,
+        version_id: @report.reload.version_id
+      }
+      Rails.logger.info "After save values: #{saved_values.inspect}"
+
+      flash[:notice] = l(:report_notice_successful_update)
       if params[:save_and_continue]
-        redirect_to edit_report_path(@report, from_global: params[:from_global])
+        redirect_to edit_registry_report_path(@report, from_global: params[:from_global])
       else
-        redirect_to(params[:from_global] == 'true' ? reports_path : project_registry_reports_path(@report.project))
+        redirect_to(params[:from_global] == 'true' ? registry_reports_path : project_registry_reports_path(@report.project))
       end
     else
+      Rails.logger.error "Save errors: #{@report.errors.full_messages}"
       @from_global = params[:from_global]
       @project = @report.project unless @project
       @versions = @project.versions.where.not(status: 'closed')
@@ -196,12 +245,12 @@ class RegistryReportsController < ApplicationController
 
   def destroy
     @report.destroy
-    redirect_to reports_path, notice: 'Отчет успешно удален'
+    redirect_to @project ? project_registry_reports_path(@project) : registry_reports_path, notice: 'Отчет успешно удален'
   end
 
   def approve
     @report.update(status: 'утвержден', updated_by: User.current.id)
-    redirect_to reports_path, notice: 'Отчет успешно утвержден'
+    redirect_to @project ? project_registry_reports_path(@project) : registry_reports_path, notice: 'Отчет успешно утвержден'
   end
 
   def show
@@ -302,9 +351,11 @@ class RegistryReportsController < ApplicationController
   end
 
   def report_params
+    # Исправляем метод report_params, чтобы он принимал все нужные параметры из формы
     params.permit(:name, :period, :start_date, :end_date, :status,
                   :total_hours, :contract_number, :project_id,
-                  :version_id, issue_ids: [])
+                  :version_id, :selected_month, :selected_quarter, :selected_year,
+                  issue_ids: [])
   end
 
   def load_versions

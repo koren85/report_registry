@@ -16,6 +16,7 @@ ru:
       contract_number: 'Номер контракта'
 
   report_notice_successful_create: 'Отчет создан успешно'
+  report_notice_successful_update: 'Отчет успешно обновлен'
   menu_reports: 'Отчет'
   button_new_report: 'Создать отчет'
   button_edit: 'Редактировать'

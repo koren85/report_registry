@@ -1,12 +1,20 @@
-<%= form_with(url: (@project ? project_registry_reports_path(@project) : registry_reports_path),
-              method: :post,
+<%= form_with(url: (@report.new_record? ?
+                             (@project ? project_registry_reports_path(@project) : registry_reports_path) :
+                             (@project ? project_registry_report_path(@project, @report) : registry_report_path(@report))),
+              method: (@report.new_record? ? :post : :put),
               local: true,
               id: 'report-form',
               data: { report_id: @report&.id }) do |f| %>
+
+  <!-- Добавляем скрытые поля для сохранения выбранных значений -->
+  <%= hidden_field_tag 'selected_month', @report.selected_month, id: 'selected_month_field' %>
+  <%= hidden_field_tag 'selected_quarter', @report.selected_quarter, id: 'selected_quarter_field' %>
+  <%= hidden_field_tag 'selected_year', @report.selected_year, id: 'selected_year_field' %>
+
   <div class="box">
     <div class="form-field width-100">
       <%= f.label :name, l(:field_name) %>
-      <%= f.text_field :name, id: 'report_name', name: 'name',required: true, maxlength: 254, style: 'width: 98%;' %>
+      <%= f.text_field :name, id: 'report_name', name: 'name', value: @report.name, required: true, maxlength: 254, style: 'width: 98%;' %>
     </div>
   </div>
 
@@ -19,11 +27,11 @@
             <%= f.collection_select :project_id,
                                     @projects_with_module,
                                     :id, :name,
-                                    { include_blank: true },
-                                    { class: 'select2', id: 'project-select', style: 'width: 100%;' } %>
+                                    { include_blank: true, selected: @report.project_id },
+                                    { class: 'select2', id: 'project-select', name: 'project_id', style: 'width: 100%;' } %>
           </p>
         <% else %>
-          <%= f.hidden_field :project_id, value: @project.id %>
+          <%= f.hidden_field :project_id, value: @project.id, name: 'project_id' %>
         <% end %>
       </div>
     </div>
@@ -35,7 +43,7 @@
           <%= f.collection_select :version_id,
                                   @versions || [],
                                   :id, :name,
-                                  { include_blank: true },
+                                  { include_blank: true, selected: @report.version_id },
                                   { class: 'select2', id: 'version-select', name: 'version_id', style: 'width: 100%;' } %>
         </p>
       </div>
@@ -50,8 +58,8 @@
       <%= f.select :period,
                    [['Месячный', 'месячный'], ['Квартальный', 'квартальный'],
                     ['Годовой', 'годовой'], ['Прочее', 'прочее']],
-                   {},
-                   { id: 'report_period',name: 'period', style: 'width: 200px;' } %>
+                   { selected: @report.period },
+                   { id: 'report_period', name: 'period', style: 'width: 200px;' } %>
     </p>
 
     <!-- Контейнер для динамических полей дат -->
@@ -60,11 +68,14 @@
         <p>
           <label>Месяц и год отчета</label>
           <span class="inline-flex">
+            <% current_month = @report.start_date ? @report.start_date.month : Date.today.month %>
             <%= select_tag 'month',
-                           options_for_select((1..12).map { |m| [t('date.month_names')[m], m] }),
+                           options_for_select((1..12).map { |m| [t('date.month_names')[m], m] }, current_month),
                            { class: 'period-select', id: 'month_select', style: 'width: 150px; margin-right: 10px;' } %>
+
+            <% current_year = @report.start_date ? @report.start_date.year : Date.today.year %>
             <%= select_tag 'year',
-                           options_for_select((Time.current.year-1..Time.current.year+1).to_a),
+                           options_for_select((Time.current.year-2..Time.current.year+1).to_a, current_year),
                            { class: 'period-select', id: 'year_select', style: 'width: 100px;' } %>
           </span>
         </p>
@@ -74,12 +85,21 @@
         <p>
           <label>Квартал и год отчета</label>
           <span class="inline-flex">
+            <%
+              current_quarter = 1
+              if @report.start_date
+                current_month = @report.start_date.month
+                current_quarter = ((current_month - 1) / 3) + 1
+              end
+            %>
             <%= select_tag 'quarter',
                            options_for_select([['Квартал 1 (Янв-Мар)', 1], ['Квартал 2 (Апр-Июн)', 2],
-                                               ['Квартал 3 (Июл-Сен)', 3], ['Квартал 4 (Окт-Дек)', 4]]),
+                                               ['Квартал 3 (Июл-Сен)', 3], ['Квартал 4 (Окт-Дек)', 4]], current_quarter),
                            { class: 'period-select', id: 'quarter_select', style: 'width: 150px; margin-right: 10px;' } %>
+
+            <% current_year = @report.start_date ? @report.start_date.year : Date.today.year %>
             <%= select_tag 'year',
-                           options_for_select((Time.current.year-1..Time.current.year+1).to_a),
+                           options_for_select((Time.current.year-2..Time.current.year+1).to_a, current_year),
                            { class: 'period-select', id: 'year_select_q', style: 'width: 100px;' } %>
           </span>
         </p>
@@ -88,8 +108,9 @@
       <div id="yearly_fields" style="display: none;">
         <p>
           <label>Год отчета</label>
+          <% current_year = @report.start_date ? @report.start_date.year : Date.today.year %>
           <%= select_tag 'year',
-                         options_for_select((Time.current.year-1..Time.current.year+1).to_a),
+                         options_for_select((Time.current.year-2..Time.current.year+1).to_a, current_year),
                          { class: 'period-select', id: 'year_select_y', style: 'width: 150px;' } %>
         </p>
       </div>
@@ -99,27 +120,28 @@
           <div class="splitcontentleft">
             <p>
               <%= f.label :start_date, l(:field_start_date) %>
-              <%= f.date_field :start_date, id: 'report_start_date', style: 'width: 150px;' %>
+              <%= f.date_field :start_date, id: 'report_start_date', name: 'start_date', value: @report.start_date, style: 'width: 150px;' %>
             </p>
           </div>
           <div class="splitcontentright">
             <p>
               <%= f.label :end_date, l(:field_end_date) %>
-              <%= f.date_field :end_date, id: 'report_end_date', style: 'width: 150px;' %>
+              <%= f.date_field :end_date, id: 'report_end_date', name: 'end_date', value: @report.end_date, style: 'width: 150px;' %>
             </p>
           </div>
         </div>
       </div>
     </div>
 
-    <%= f.hidden_field :start_date, id: 'hidden_start_date', name: 'start_date' %>
-    <%= f.hidden_field :end_date, id: 'hidden_end_date', name: 'end_date' %>
+    <!-- Убедимся, что значения для hidden полей всегда заполнены -->
+    <%= hidden_field_tag 'start_date', @report.start_date, id: 'hidden_start_date' %>
+    <%= hidden_field_tag 'end_date', @report.end_date, id: 'hidden_end_date' %>
   </div>
 
   <div class="box">
     <p>
       <%= f.label :contract_number, l(:field_contract_number) %>
-      <%= f.text_field :contract_number, id: 'report_contract_number', name: 'contract_number', style: 'width: 200px;' %>
+      <%= f.text_field :contract_number, id: 'report_contract_number', name: 'contract_number', value: @report.contract_number, style: 'width: 200px;' %>
     </p>
   </div>
 
@@ -147,6 +169,7 @@
   </div>
 
   <div class="box form-actions">
+    <%= f.hidden_field :status, value: @report.status || 'черновик' %>
 
     <p style="margin-bottom: 0;">
       <%= f.submit l(:button_save),

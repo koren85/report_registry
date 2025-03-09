@@ -18,6 +18,9 @@ class Report < ActiveRecord::Base
   validates :project_id, presence: true
   validates :status, inclusion: { in: %w[черновик в_работе сформирован утвержден] }
 
+  validates :selected_year, numericality: { only_integer: true }, allow_nil: true
+  validates :selected_month, numericality: { only_integer: true, greater_than_or_equal_to: 1, less_than_or_equal_to: 12 }, allow_nil: true
+  validates :selected_quarter, numericality: { only_integer: true, greater_than_or_equal_to: 1, less_than_or_equal_to: 4 }, allow_nil: true
 
 
   # Методы проверки прав
