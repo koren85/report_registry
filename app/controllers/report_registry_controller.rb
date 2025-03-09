@@ -1,4 +1,4 @@
-class ReportsController < ApplicationController
+class ReportRegistryController < ApplicationController
   helper :sort
   include SortHelper
   helper :queries
@@ -12,15 +12,62 @@ class ReportsController < ApplicationController
   # Сначала проверяем админа
   before_action :skip_authorization_for_admin, if: -> { User.current.admin? }
 
-  # Потом остальные проверки для не-админов
-  before_action :authorize_global, only: [:index, :new, :create], if: -> { !User.current.admin? && @project.nil? }
-  before_action :authorize, if: -> { !User.current.admin? && @project.present? }
+  # Заменяем логику авторизации
+  # Вместо метода authorize используем свой метод проверки прав, который не вызывает authorize
+  before_action :check_global_permissions, only: [:index, :new, :create], if: -> { !User.current.admin? && @project.nil? }
+  before_action :check_project_permissions, only: [:index, :new, :create, :edit, :update, :destroy, :approve, :show], if: -> { !User.current.admin? && @project.present? }
   before_action :check_search_permissions, only: [:search]
 
+  # В ReportRegistryController, добавьте переопределение метода для предотвращения автоматической авторизации
+  def authorize(ctrl = params[:controller], action = params[:action], global = false)
+    # Если мы в глобальном контексте (без проекта), проверяем глобальные разрешения
+    if @project.nil?
+      if User.current.admin? ||
+        User.current.allowed_to_globally?(:view_reports_global) ||
+        User.current.allowed_to_globally?(:manage_reports_global)
+        return true
+      else``
+        render_403
+        return false
+      end
+    end
 
+    # Иначе, вызываем стандартную авторизацию для проекта
+    super
+  end
+
+  # Новый метод, который проверяет глобальные разрешения без вызова стандартного authorize
+  def check_global_permissions
+    # Проверяем, имеет ли пользователь глобальные права на просмотр/управление отчетами
+    allowed = User.current.allowed_to_globally?(:view_reports_global) ||
+             User.current.allowed_to_globally?(:manage_reports_global)
+
+    unless allowed
+      render_403
+      return false
+    end
+    true
+  end
+
+  # Новый метод, который проверяет права на уровне проекта без вызова стандартного authorize
+  def check_project_permissions
+    # Проверяем, имеет ли пользователь права на просмотр/управление отчетами в проекте
+    allowed = User.current.allowed_to?(:view_reports, @project) ||
+             User.current.allowed_to?(:manage_reports, @project)
+
+    unless allowed
+      render_403
+      return false
+    end
+    true
+  end
 
   def find_optional_project
-    return true if params[:project_id].blank? # Если project_id не указан, просто пропускаем
+    # Если project_id не указан, просто устанавливаем @project в nil и продолжаем
+    if params[:project_id].blank?
+      @project = nil
+      return
+    end
 
     # Поиск проекта по identifier или id
     @project = Project.find_by(identifier: params[:project_id]) ||
@@ -37,7 +84,12 @@ class ReportsController < ApplicationController
       render_403
       return false
     end
+  end
 
+  # Явно определяем фильтр, который упоминается в ошибке
+  def find_project
+    # Этот метод не будет вызываться благодаря переопределению
+    # Просто заглушка для совместимости
     true
   end
 
@@ -49,24 +101,24 @@ class ReportsController < ApplicationController
                  .includes(:project)
                  .references(:project)
 
-  # Добавляем базовые условия для проекта
-  if @project
-    scope = scope.where(project_id: @project.id)
-  end
+    # Добавляем базовые условия для проекта
+    if @project
+      scope = scope.where(project_id: @project.id)
+    end
 
-  # Добавляем условия фильтрации из @query
-  if @query.statement.present?
-    scope = scope.where(@query.statement)
-  end
+    # Добавляем условия фильтрации из @query
+    if @query.statement.present?
+      scope = scope.where(@query.statement)
+    end
 
-  sort_init(@query.sort_criteria.empty? ? [["#{Report.table_name}.id", 'desc']] : @query.sort_criteria)
-  sort_update(@query.sortable_columns)
+    sort_init(@query.sort_criteria.empty? ? [["#{Report.table_name}.id", 'desc']] : @query.sort_criteria)
+    sort_update(@query.sortable_columns)
 
-  scope = scope.reorder(sort_clause) if sort_clause.present?
+    scope = scope.reorder(sort_clause) if sort_clause.present?
 
-  @item_count = scope.count
-  @item_pages = Paginator.new @item_count, per_page_option, params['page']
-  @items = scope.limit(@item_pages.per_page).offset(@item_pages.offset).to_a
+    @item_count = scope.count
+    @item_pages = Paginator.new @item_count, per_page_option, params['page']
+    @items = scope.limit(@item_pages.per_page).offset(@item_pages.offset).to_a
 
     respond_to do |format|
       format.html
@@ -81,11 +133,11 @@ class ReportsController < ApplicationController
     if @project
       @report = @project.reports.new
       load_versions
-      authorize
+
     else
       @report = Report.new
       @projects_with_module = Project.active.has_module(:report_registry)
-      authorize_global
+
     end
   end
 
@@ -219,6 +271,7 @@ class ReportsController < ApplicationController
     @query
   end
 
+  # Этот метод больше не используется напрямую
   def authorize_global
     allowed = User.current.admin? ||
               User.current.allowed_to_globally?(:view_reports_global) ||
@@ -265,11 +318,21 @@ class ReportsController < ApplicationController
     return true if User.current.admin?
 
     if @project
-      authorize(@project, :view_issues?) # Изменено с view_reports? на view_issues?
+      # Проверяем права без вызова метода authorize
+      allowed = User.current.allowed_to?(:view_issues, @project)
+      unless allowed
+        render_403
+        return false
+      end
     else
-      authorize_global(:view_issues) # Изменено для соответствия стандартам Redmine
+      # Проверяем глобальные права без вызова метода authorize_global
+      allowed = User.current.allowed_to_globally?(:view_issues)
+      unless allowed
+        render_403
+        return false
+      end
     end
-  rescue
-    render_403
+
+    true
   end
 end

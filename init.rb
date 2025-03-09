@@ -2,7 +2,7 @@
 require File.expand_path('../app/helpers/reports_helper', __FILE__)
 require File.expand_path('../lib/reports_hook_listener', __FILE__)
 require File.expand_path('../lib/project_patch', __FILE__)
-require File.expand_path('../app/controllers/reports_controller', __FILE__)
+require File.expand_path('../app/controllers/report_registry_controller', __FILE__)
 require File.expand_path('../app/controllers/report_issues_controller', __FILE__)
 require File.expand_path('../lib/report_registry/issue_query_patch', __FILE__)
 
@@ -24,7 +24,7 @@ Redmine::Plugin.register :report_registry do
 
   # Добавление пункта в главное меню (top_menu)
   menu :top_menu, :global_reports,
-       { controller: 'reports', action: 'index' },
+       { controller: 'registry_reports', action: 'index' },
        caption: 'Все отчёты',
        if: Proc.new { |proj| User.current.admin? || User.current.allowed_to_globally?(:view_reports_global) },
        html: { class: 'icon icon-reports' }
@@ -33,13 +33,13 @@ Redmine::Plugin.register :report_registry do
   project_module :report_registry do
     # Разрешения для просмотра отчетов
     permission :view_reports, {
-      reports: [:index, :show, :search],
+      registry_reports: [:index, :show, :search],
       report_issues: [:index, :modal_issues, :search, :select_search]
     }, read: true
 
     # Разрешения для управления отчетами
     permission :manage_reports, {
-      reports: [:new, :create, :edit, :update, :destroy, :approve],
+      registry_reports: [:new, :create, :edit, :update, :destroy, :approve],
       report_issues: [:modal_issues, :add_issues, :search, :select_search, :remove_issue, :add_issue, :remove_issues]
     }
 
@@ -57,18 +57,18 @@ Redmine::Plugin.register :report_registry do
 
     # Разрешение для утверждения отчетов
     permission :approve_reports, {
-      reports: [:approve]
+      registry_reports: [:approve]
     }
 
     # Глобальные разрешения для просмотра отчетов
     permission :view_reports_global, {
-      reports: [:index, :show, :search],
+      registry_reports: [:index, :show, :search],
       report_issues: [:index, :modal_issues, :search, :select_search]
     }, global: true
 
     # Глобальные разрешения для управления отчетами
     permission :manage_reports_global, {
-      reports: [:new, :create, :edit, :update, :destroy],
+      registry_reports: [:new, :create, :edit, :update, :destroy],
       report_issues: [:modal_issues, :add_issues, :search, :select_search, :remove_issue, :add_issue, :remove_issues]
     }, global: true
 
@@ -80,7 +80,7 @@ Redmine::Plugin.register :report_registry do
 
   # Добавление пункта меню в проекты с включенным модулем
   menu :project_menu, :report_registry,
-       { controller: 'reports', action: 'index' },
+       { controller: 'registry_reports', action: 'index' },
        caption: 'Отчеты',
        param: :project_id,
        if: -> (project) { project.module_enabled?(:report_registry) }

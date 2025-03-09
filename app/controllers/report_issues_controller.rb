@@ -191,7 +191,7 @@ class ReportIssuesController < ApplicationController
     @report.reload
 
     respond_to do |format|
-      format.html { redirect_to edit_report_path(@report) }
+      format.html { redirect_to edit_registry_report_path(@report) }
       format.js
     end
   rescue => e
@@ -199,7 +199,7 @@ class ReportIssuesController < ApplicationController
     respond_to do |format|
       format.html do
         flash[:error] = l(:error_adding_issues)
-        redirect_to edit_report_path(@report)
+        redirect_to edit_registry_report_path(@report)
       end
       format.js { render js: "alert('#{l(:error_adding_issues)}');", status: :unprocessable_entity }
     end

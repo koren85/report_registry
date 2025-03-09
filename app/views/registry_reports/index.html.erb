@@ -4,12 +4,12 @@
 
 <div class="contextual">
   <%= link_to l(:button_new_report),
-              @project ? new_project_report_path(@project) : new_report_path,
+              @project ? new_project_registry_report_path(@project) : new_registry_report_path,
               class: 'icon icon-add' %>
 </div>
 
 <div id="query_form_with_buttons" class="hide-when-print">
-  <%= form_tag(@project ? project_reports_path(@project) : reports_path, method: :get, id: 'query_form') do %>
+  <%= form_tag(@project ? project_registry_reports_path(@project) : reports_path, method: :get, id: 'query_form') do %>
     <%= hidden_field_tag 'set_filter', '1' %>
     <div id="query_form_content">
       <fieldset id="filters" class="collapsible <%= @query.new_record? ? "" : "collapsed" %>">
@@ -71,24 +71,24 @@
           <td class="contract_number"><%= report.contract_number %></td>
           <td class="buttons">
             <% if @project %>
-              <%= link_to l(:button_edit), edit_project_report_path(@project, report), class: 'icon icon-edit' %>
-              <%= link_to l(:button_delete), project_report_path(@project, report),
+              <%= link_to l(:button_edit), edit_project_registry_report_path(@project, report), class: 'icon icon-edit' %>
+              <%= link_to l(:button_delete), project_registry_report_path(@project, report),
                           method: :delete,
                           data: { confirm: l(:text_are_you_sure) },
                           class: 'icon icon-del' %>
               <% if report.status != 'утвержден' %>
-                <%= link_to l(:button_approve), approve_project_report_path(@project, report),
+                <%= link_to l(:button_approve), approve_project_registry_report_path(@project, report),
                             method: :patch,
                             class: 'icon icon-approve' %>
               <% end %>
             <% else %>
-              <%= link_to l(:button_edit), edit_report_path(report), class: 'icon icon-edit' %>
-              <%= link_to l(:button_delete), report_path(report),
+              <%= link_to l(:button_edit), edit_registry_registry_report_path(report), class: 'icon icon-edit' %>
+              <%= link_to l(:button_delete), registry_report_path(report),
                           method: :delete,
                           data: { confirm: l(:text_are_you_sure) },
                           class: 'icon icon-del' %>
               <% if report.status != 'утвержден' %>
-                <%= link_to l(:button_approve), approve_report_path(report),
+                <%= link_to l(:button_approve), approve_registry_report_path(report),
                             method: :patch,
                             class: 'icon icon-approve' %>
               <% end %>

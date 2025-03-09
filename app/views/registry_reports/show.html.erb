@@ -1,8 +1,8 @@
 <!--# app/views/reports/show.html.erb-->
 <div class="contextual">
   <% if @report.editable? %>
-    <%= link_to l(:button_edit), edit_project_report_path(@project, @report), class: 'icon icon-edit' %>
-    <%= link_to l(:button_delete), project_report_path(@project, @report),
+    <%= link_to l(:button_edit), edit_project_registry_report_path(@project, @report), class: 'icon icon-edit' %>
+    <%= link_to l(:button_delete), project_registry_report_path(@project, @report),
                 method: :delete,
                 data: { confirm: l(:text_are_you_sure) },
                 class: 'icon icon-del' %>

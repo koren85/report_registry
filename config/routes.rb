@@ -1,7 +1,7 @@
 # config/routes.rb
 
 Rails.application.routes.draw do
-  resources :reports do
+  resources :report_registry do
     resources :report_issues do
       collection do
         get 'modal_issues'
@@ -29,7 +29,7 @@ Rails.application.routes.draw do
   end
 
   resources :projects do
-    resources :reports do
+    resources :report_registry do
       resources :report_issues do
         collection do
           get 'modal_issues'

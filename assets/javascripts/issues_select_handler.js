@@ -121,7 +121,7 @@ var IssuesSelectHandler = (function() {
     // Остальные функции без изменений
     function addIssueToReport(issueId) {
         var reportId = $('#report-form').data('report-id');
-        var url = '/reports/' + reportId + '/report_issues/add';
+        var url = '/registry_reports/' + reportId + '/report_issues/add';
 
         $.post(url, { issue_id: issueId })
             .fail(function(jqXHR) {
@@ -132,7 +132,7 @@ var IssuesSelectHandler = (function() {
 
     function removeIssueFromReport(issueId) {
         var reportId = $('#report-form').data('report-id');
-        var url = '/reports/' + reportId + '/report_issues/remove_issue';
+        var url = '/registry_reports/' + reportId + '/report_issues/remove_issue';
 
         $.ajax({
             url: url,
