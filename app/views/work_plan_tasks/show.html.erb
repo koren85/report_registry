@@ -1,0 +1,174 @@
+<%# app/views/work_plan_tasks/show.html.erb %>
+<% html_title "#{l(:label_task)}: #{@task.issue.subject}" %>
+
+<div class="contextual">
+  <%= link_to l(:button_back_to_category), project_work_plan_work_plan_category_path(@project, @work_plan, @category), class: 'icon icon-back' %>
+
+  <% if @work_plan.editable? %>
+    <%= link_to l(:button_edit), edit_project_work_plan_work_plan_category_work_plan_task_path(@project, @work_plan, @category, @task),
+                class: 'icon icon-edit',
+                data: { remote: true } %>
+    <%= link_to l(:button_delete), project_work_plan_work_plan_category_work_plan_task_path(@project, @work_plan, @category, @task),
+                method: :delete,
+                data: { confirm: l(:text_are_you_sure) },
+                class: 'icon icon-del' %>
+  <% end %>
+</div>
+
+<h2><%= l(:label_task) %> #<%= @task.issue.id %>: <%= @task.issue.subject %></h2>
+
+<div class="splitcontent">
+  <div class="splitcontentleft">
+    <div class="box">
+      <h3><%= l(:label_task_details) %></h3>
+      <table class="attributes">
+        <tr>
+          <th><%= l(:field_issue) %>:</th>
+          <td><%= link_to "#{@task.issue.tracker.name} ##{@task.issue.id}: #{@task.issue.subject}", issue_path(@task.issue) %></td>
+        </tr>
+        <tr>
+          <th><%= l(:field_project) %>:</th>
+          <td><%= link_to @task.issue.project.name, project_path(@task.issue.project) %></td>
+        </tr>
+        <tr>
+          <th><%= l(:field_status) %>:</th>
+          <td><%= @task.issue.status.name %></td>
+        </tr>
+        <tr>
+          <th><%= l(:field_priority) %>:</th>
+          <td><%= @task.issue.priority.name %></td>
+        </tr>
+        <tr>
+          <th><%= l(:field_assigned_to) %>:</th>
+          <td><%= @task.issue.assigned_to ? link_to_user(@task.issue.assigned_to) : "-" %></td>
+        </tr>
+        <tr>
+          <th><%= l(:field_start_date) %>:</th>
+          <td><%= format_date(@task.issue.start_date) %></td>
+        </tr>
+        <tr>
+          <th><%= l(:field_due_date) %>:</th>
+          <td><%= format_date(@task.issue.due_date) %></td>
+        </tr>
+        <tr>
+          <th><%= l(:field_estimated_hours) %>:</th>
+          <td><%= l_hours(@task.issue.estimated_hours) %></td>
+        </tr>
+        <tr>
+          <th><%= l(:field_total_hours) %>:</th>
+          <td><%= l_hours(@task.total_hours) %></td>
+        </tr>
+        <tr>
+          <th><%= l(:field_completion) %>:</th>
+          <td>
+            <div class="progress progress-<%= @task.completion_percentage < 50 ? 'danger' : (@task.completion_percentage < 100 ? 'warning' : 'success') %>">
+              <div class="bar" style="width: <%= @task.completion_percentage %>%;">
+                <%= number_to_percentage(@task.completion_percentage, precision: 0) %>
+              </div>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <th><%= l(:field_accounting_month) %>:</th>
+          <td><%= l(:'date.month_names')[@task.accounting_month] if @task.accounting_month %></td>
+        </tr>
+        <tr>
+          <th><%= l(:field_report_inclusion_month) %>:</th>
+          <td><%= l(:'date.month_names')[@task.report_inclusion_month] if @task.report_inclusion_month %></td>
+        </tr>
+        <% if @task.comments.present? %>
+          <tr>
+            <th><%= l(:field_comments) %>:</th>
+            <td class="wiki"><%= simple_format(@task.comments) %></td>
+          </tr>
+        <% end %>
+        <% if @task.result.present? %>
+          <tr>
+            <th><%= l(:field_result) %>:</th>
+            <td class="wiki"><%= simple_format(@task.result) %></td>
+          </tr>
+        <% end %>
+      </table>
+    </div>
+  </div>
+
+  <div class="splitcontentright">
+    <div class="box">
+      <h3><%= l(:label_hours_distribution) %></h3>
+
+      <% if @distributions.any? %>
+        <table class="list">
+          <thead>
+          <tr>
+            <th><%= l(:field_month) %></th>
+            <th><%= l(:field_hours) %></th>
+          </tr>
+          </thead>
+          <tbody>
+          <% @distributions.each do |distribution| %>
+            <tr>
+              <td><%= distribution.month_name %></td>
+              <td class="hours"><%= number_with_precision(distribution.hours, precision: 2) %></td>
+            </tr>
+          <% end %>
+          </tbody>
+          <tfoot>
+          <tr>
+            <td><strong><%= l(:label_sum) %></strong></td>
+            <td class="hours"><strong><%= number_with_precision(@task.total_hours, precision: 2) %></strong></td>
+          </tr>
+          </tfoot>
+        </table>
+      <% else %>
+        <p class="nodata"><%= l(:label_no_hours_distribution) %></p>
+      <% end %>
+    </div>
+
+    <div class="box">
+      <h3><%= l(:label_related_reports) %></h3>
+
+      <% if @task.reports.any? %>
+        <table class="list">
+          <thead>
+          <tr>
+            <th><%= l(:field_name) %></th>
+            <th><%= l(:field_period) %></th>
+            <th><%= l(:field_reported_hours) %></th>
+            <th><%= l(:field_status) %></th>
+          </tr>
+          </thead>
+          <tbody>
+          <% @task.report_plan_links.includes(:report).each do |link| %>
+            <tr>
+              <td>
+                <%= link_to link.report.name,
+                            link.report.project_id == @project.id ?
+                              project_registry_report_path(@project, link.report) :
+                              registry_report_path(link.report) %>
+              </td>
+              <td><%= "#{link.report.period} (#{format_date(link.report.start_date)} - #{format_date(link.report.end_date)})" %></td>
+              <td class="hours"><%= number_with_precision(link.reported_hours, precision: 2) %></td>
+              <td class="status <%= link.report.status %>"><%= link.report.status %></td>
+            </tr>
+          <% end %>
+          </tbody>
+        </table>
+      <% else %>
+        <p class="nodata"><%= l(:label_no_related_reports) %></p>
+      <% end %>
+    </div>
+  </div>
+</div>
+
+<% if @task.issue.description.present? %>
+  <div class="box">
+    <h3><%= l(:field_description) %></h3>
+    <div class="wiki">
+      <%= textilizable(@task.issue.description) %>
+    </div>
+  </div>
+<% end %>
+
+<% content_for :header_tags do %>
+  <%= stylesheet_link_tag 'work_plans', plugin: 'report_registry' %>
+<% end %>

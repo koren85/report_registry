@@ -1,3 +1,4 @@
+<%# app/views/settings/_report_registry_settings.html.erb %>
 <div class="box tabular settings">
   <h3><%= l(:label_custom_field_settings) %></h3>
 
@@ -38,6 +39,23 @@
                      @settings['hours_source']
                    ) %>
     <em class="info"><%= l(:text_hours_source_info) %></em>
+  </div>
+
+  <h3><%= l(:label_work_plan_settings) %></h3>
+
+  <div class="form-field">
+    <label><%= l(:label_contract_hours_field) %></label>
+    <%= select_tag 'settings[contract_hours_field_id]',
+                   options_from_collection_for_select(
+                     CustomField.where(type: 'VersionCustomField')
+                               .where(field_format: ['float', 'int']),
+                     :id,
+                     :name,
+                     @settings['contract_hours_field_id']
+                   ),
+                   include_blank: true,
+                   class: 'select2' %>
+    <em class="info"><%= l(:text_contract_hours_field_info) %></em>
   </div>
 </div>
 

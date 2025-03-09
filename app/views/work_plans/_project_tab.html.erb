@@ -1,0 +1,56 @@
+<% @work_plans = WorkPlan.joins(:version)
+                         .where(versions: { project_id: project.id })
+                         .order(updated_at: :desc)
+                         .limit(5) %>
+
+<div class="box">
+  <h3><%= l(:label_work_plans) %></h3>
+
+  <div class="contextual">
+    <%= link_to l(:button_more), project_work_plans_path(project), class: 'icon icon-list' if @work_plans.size == 5 %>
+    <% if User.current.allowed_to?(:manage_work_plans, project) &&
+      project.versions.where.not(status: 'closed').where.not(id: WorkPlan.select(:version_id)).any? %>
+      <span class="dropdown">
+        <a href="#" class="icon icon-add dropdown-toggle" data-toggle="dropdown"><%= l(:button_create) %></a>
+        <ul class="dropdown-menu">
+          <% project.versions.where.not(status: 'closed').where.not(id: WorkPlan.select(:version_id)).each do |version| %>
+            <li>
+              <%= link_to version.name, new_project_version_work_plan_path(project, version) %>
+            </li>
+          <% end %>
+        </ul>
+      </span>
+    <% end %>
+  </div>
+
+  <% if @work_plans.any? %>
+    <div class="autoscroll">
+      <table class="list">
+        <thead>
+        <tr>
+          <th><%= l(:field_name) %></th>
+          <th><%= l(:field_version) %></th>
+          <th><%= l(:field_status) %></th>
+          <th><%= l(:field_planned_hours) %></th>
+          <th><%= l(:field_contract_hours) %></th>
+          <th><%= l(:field_updated_on) %></th>
+        </tr>
+        </thead>
+        <tbody>
+        <% @work_plans.each do |work_plan| %>
+          <tr>
+            <td><%= link_to work_plan.name, project_work_plan_path(project, work_plan) %></td>
+            <td><%= link_to_version work_plan.version %></td>
+            <td class="status <%= work_plan.status %>"><%= l(:"work_plan_status_#{work_plan.status}") %></td>
+            <td class="hours"><%= number_with_precision(work_plan.total_planned_hours, precision: 2) %></td>
+            <td class="hours"><%= number_with_precision(work_plan.contract_hours, precision: 2) %></td>
+            <td><%= format_time(work_plan.updated_at) %></td>
+          </tr>
+        <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% else %>
+    <p class="nodata"><%= l(:label_no_data) %></p>
+  <% end %>
+</div>

@@ -1,0 +1,101 @@
+<%# app/views/registry_reports/plan_tasks.html.erb %>
+<% html_title l(:label_add_plan_tasks) %>
+
+<div class="contextual">
+  <%= link_to l(:button_back), edit_project_registry_report_path(@project, @report), class: 'icon icon-back' %>
+</div>
+
+<h2><%= l(:label_add_plan_tasks) %>: <%= @report.name %></h2>
+
+<% if @work_plans.any? %>
+  <div class="box">
+    <h3><%= l(:label_available_plans) %></h3>
+
+    <% @work_plans.each do |work_plan| %>
+      <h4><%= link_to work_plan.name, project_work_plan_path(@project, work_plan) %></h4>
+
+      <% if work_plan.work_plan_tasks.any? %>
+        <%= form_tag add_plan_tasks_project_registry_report_path(@project, @report), method: :post do %>
+          <%= hidden_field_tag :work_plan_id, work_plan.id %>
+
+          <div class="autoscroll">
+            <table class="list">
+              <thead>
+              <tr>
+                <th class="checkbox"><%= check_box_tag 'check_all', '', false, class: 'toggle-selection' %></th>
+                <th>#</th>
+                <th><%= l(:field_subject) %></th>
+                <th><%= l(:field_category) %></th>
+                <th><%= l(:field_status) %></th>
+                <th><%= l(:field_accounting_month) %></th>
+                <th><%= l(:field_report_inclusion_month) %></th>
+                <th><%= l(:field_total_hours) %></th>
+                <th><%= l(:field_completion) %></th>
+              </tr>
+              </thead>
+              <tbody>
+              <% work_plan.work_plan_tasks.includes(:work_plan_category, :issue).each do |task| %>
+                <% next if @report.work_plan_tasks.include?(task) %>
+                <tr class="<%= cycle('odd', 'even') %>">
+                  <td class="checkbox">
+                    <%= check_box_tag 'task_ids[]', task.id, false, class: 'task-checkbox' %>
+                  </td>
+                  <td class="id"><%= link_to task.issue.id, issue_path(task.issue) %></td>
+                  <td class="subject"><%= task.issue.subject %></td>
+                  <td class="category"><%= task.work_plan_category.category_name %></td>
+                  <td class="status"><%= task.issue.status.name %></td>
+                  <td class="month">
+                    <%= l(:'date.month_names')[task.accounting_month] if task.accounting_month %>
+                  </td>
+                  <td class="month">
+                    <%= l(:'date.month_names')[task.report_inclusion_month] if task.report_inclusion_month %>
+                  </td>
+                  <td class="hours"><%= number_with_precision(task.total_hours, precision: 2) %></td>
+                  <td class="progress">
+                    <div class="progress progress-<%= task.completion_percentage < 50 ? 'danger' : (task.completion_percentage < 100 ? 'warning' : 'success') %>">
+                      <div class="bar" style="width: <%= task.completion_percentage %>%;">
+                        <%= number_to_percentage(task.completion_percentage, precision: 0) %>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              <% end %>
+              </tbody>
+            </table>
+          </div>
+
+          <p class="buttons">
+            <%= submit_tag l(:button_add_selected), class: 'button-positive' %>
+          </p>
+        <% end %>
+      <% else %>
+        <p class="nodata"><%= l(:label_no_data) %></p>
+      <% end %>
+    <% end %>
+  </div>
+<% else %>
+  <div class="box">
+    <p class="nodata"><%= l(:label_no_available_plans) %></p>
+  </div>
+<% end %>
+
+<% content_for :header_tags do %>
+  <%= stylesheet_link_tag 'work_plans', plugin: 'report_registry' %>
+
+  <script>
+      $(document).ready(function() {
+          // Обработчик для выделения всех задач
+          $('.toggle-selection').on('change', function() {
+              var checked = $(this).prop('checked');
+              $(this).closest('table').find('.task-checkbox').prop('checked', checked);
+          });
+
+          // Обработчик для снятия общего чекбокса, если снят дочерний
+          $('.task-checkbox').on('change', function() {
+              if (!$(this).prop('checked')) {
+                  $(this).closest('table').find('.toggle-selection').prop('checked', false);
+              }
+          });
+      });
+  </script>
+<% end %>

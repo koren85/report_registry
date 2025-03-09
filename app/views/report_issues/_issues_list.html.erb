@@ -56,6 +56,17 @@
       </td>
 
       <td><%= issue.status.name %></td>
+      <% # Добавить содержимое колонки в строку задачи после статуса %>
+      <td class="work-plan">
+        <% if issue_report && (task = WorkPlanTask.joins(work_plan_category: :work_plan)
+                                                  .where(issue_id: issue.id)
+                                                  .first) %>
+          <%= link_to task.work_plan_category.work_plan.name,
+                      project_work_plan_path(issue.project, task.work_plan_category.work_plan) %>
+        <% else %>
+          -
+        <% end %>
+      </td>
       <td><%= issue.project.name %></td>
       <td><%= issue.fixed_version.try(:name) %></td>
       <td><%= format_date(issue.start_date) %></td>

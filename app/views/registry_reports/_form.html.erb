@@ -186,6 +186,45 @@
                   (@project ? project_registry_reports_path(@project) : registry_reports_path),
                   class: 'button' %>
     </p>
+
+
+    <% if @report.persisted? %>
+      <div class="box">
+        <h3><%= l(:label_related_work_plans) %></h3>
+
+        <% if @report.related_work_plans.any? %>
+          <div class="autoscroll">
+            <table class="list">
+              <thead>
+              <tr>
+                <th><%= l(:field_name) %></th>
+                <th><%= l(:field_version) %></th>
+                <th><%= l(:field_year) %></th>
+                <th><%= l(:field_status) %></th>
+                <th><%= l(:field_tasks_in_report) %></th>
+                <th class="buttons"></th>
+              </tr>
+              </thead>
+              <tbody>
+              <% @report.related_work_plans.includes(:version).each do |work_plan| %>
+                <tr>
+                  <td><%= link_to work_plan.name, project_work_plan_path(@project, work_plan) %></td>
+                  <td><%= link_to_version work_plan.version %></td>
+                  <td><%= work_plan.year %></td>
+                  <td class="status <%= work_plan.status %>"><%= l(:"work_plan_status_#{work_plan.status}") %></td>
+                  <td><%= @report.work_plan_tasks.where(work_plan_category_id: work_plan.work_plan_category_ids).count %></td>
+                  <td class="buttons"></td>
+                </tr>
+              <% end %>
+              </tbody>
+            </table>
+          </div>
+        <% else %>
+          <p class="nodata"><%= l(:label_no_related_work_plans) %></p>
+        <% end %>
+      </div>
+    <% end %>
+
   </div>
 <% end %>
 

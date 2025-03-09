@@ -1,0 +1,127 @@
+<%# app/views/work_plan_categories/show.html.erb %>
+<% html_title "#{l(:label_work_plan)}: #{@work_plan.name}" %>
+
+<div class="contextual">
+  <%= link_to l(:button_back_to_plan), project_work_plan_path(@project, @work_plan), class: 'icon icon-back' %>
+
+  <% if @work_plan.editable? %>
+    <%= link_to l(:button_edit), edit_project_work_plan_work_plan_category_path(@project, @work_plan, @category),
+                class: 'icon icon-edit',
+                data: { remote: true } %>
+    <%= link_to l(:button_delete), project_work_plan_work_plan_category_path(@project, @work_plan, @category),
+                method: :delete,
+                data: { confirm: l(:text_are_you_sure) },
+                class: 'icon icon-del' %>
+
+    <%= link_to l(:button_add_task), new_project_work_plan_work_plan_category_work_plan_task_path(@project, @work_plan, @category),
+                class: 'icon icon-add-bullet',
+                data: { remote: true } %>
+  <% end %>
+</div>
+
+<h2><%= l(:label_work_category) %>: <%= @category.category_name %></h2>
+
+<div class="box">
+  <h3><%= l(:label_details) %></h3>
+  <table class="attributes">
+    <tr>
+      <th><%= l(:field_name) %>:</th>
+      <td><%= @category.category_name %></td>
+    </tr>
+    <% if @category.plan_work_exists? %>
+      <tr>
+        <th><%= l(:field_plan_work) %>:</th>
+        <td><%= @category.plan_work.name %></td>
+      </tr>
+    <% end %>
+    <tr>
+      <th><%= l(:field_planned_hours) %>:</th>
+      <td><%= number_with_precision(@category.planned_hours, precision: 2) %></td>
+    </tr>
+  </table>
+</div>
+
+<div class="box">
+  <h3><%= l(:label_tasks) %></h3>
+
+  <% if @work_plan.editable? %>
+    <div class="contextual">
+      <%= link_to l(:button_add), new_project_work_plan_work_plan_category_work_plan_task_path(@project, @work_plan, @category),
+                  class: 'icon icon-add',
+                  data: { remote: true } %>
+    </div>
+  <% end %>
+
+  <% if @category.work_plan_tasks.any? %>
+    <div class="autoscroll">
+      <table class="list tasks">
+        <thead>
+        <tr>
+          <th>#</th>
+          <th><%= l(:field_subject) %></th>
+          <th><%= l(:field_total_hours) %></th>
+          <th><%= l(:field_accounting_month) %></th>
+          <th><%= l(:field_report_inclusion_month) %></th>
+          <th><%= l(:field_status) %></th>
+          <th><%= l(:field_completion) %></th>
+          <th class="buttons"></th>
+        </tr>
+        </thead>
+        <tbody>
+        <% @category.work_plan_tasks.includes(:issue).each do |task| %>
+          <tr class="<%= cycle('odd', 'even') %> <%= 'completed' if task.completed? %>">
+            <td class="id">
+              <%= link_to task.issue.id, issue_path(task.issue) %>
+            </td>
+            <td class="subject">
+              <%= link_to task.issue.subject, project_work_plan_work_plan_category_work_plan_task_path(@project, @work_plan, @category, task) %>
+            </td>
+            <td class="hours"><%= number_with_precision(task.total_hours, precision: 2) %></td>
+            <td class="month">
+              <%= l(:'date.month_names')[task.accounting_month] if task.accounting_month %>
+            </td>
+            <td class="month">
+              <%= l(:'date.month_names')[task.report_inclusion_month] if task.report_inclusion_month %>
+            </td>
+            <td class="status"><%= task.issue.status.name %></td>
+            <td class="progress">
+              <div class="progress progress-<%= task.completion_percentage < 50 ? 'danger' : (task.completion_percentage < 100 ? 'warning' : 'success') %>">
+                <div class="bar" style="width: <%= task.completion_percentage %>%;">
+                  <%= number_to_percentage(task.completion_percentage, precision: 0) %>
+                </div>
+              </div>
+            </td>
+            <td class="buttons">
+              <% if @work_plan.editable? %>
+                <%= link_to l(:button_edit), edit_project_work_plan_work_plan_category_work_plan_task_path(@project, @work_plan, @category, task),
+                            class: 'icon icon-edit',
+                            data: { remote: true } %>
+                <%= link_to l(:button_delete), project_work_plan_work_plan_category_work_plan_task_path(@project, @work_plan, @category, task),
+                            method: :delete,
+                            data: { confirm: l(:text_are_you_sure), remote: true },
+                            class: 'icon icon-del' %>
+              <% end %>
+            </td>
+          </tr>
+        <% end %>
+        </tbody>
+        <tfoot>
+        <tr>
+          <td colspan="2"><strong><%= l(:label_sum) %></strong></td>
+          <td class="hours"><strong><%= number_with_precision(@category.planned_hours, precision: 2) %></strong></td>
+          <td colspan="5"></td>
+        </tr>
+        </tfoot>
+      </table>
+    </div>
+  <% else %>
+    <p class="nodata"><%= l(:label_no_data) %></p>
+  <% end %>
+</div>
+
+<div id="modal-window" class="modal hide fade" tabindex="-1"></div>
+
+<% content_for :header_tags do %>
+  <%= stylesheet_link_tag 'work_plans', plugin: 'report_registry' %>
+  <%= javascript_include_tag 'work_plans', plugin: 'report_registry' %>
+<% end %>

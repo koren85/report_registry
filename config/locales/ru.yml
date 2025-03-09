@@ -136,3 +136,101 @@ ru:
 
   label_total_hours: "Часов в отчете"
   field_reported_hours: "Часы"
+
+
+  # Переводы для планов работ
+
+  label_work_plans_all: 'Все планы работ'
+  label_filters: 'Фильтры'
+  button_apply: 'Применить'
+  button_clear: 'Сбросить'
+  button_more: 'Больше'
+
+  label_work_plans: 'Планы работ'
+  label_work_plan: 'План работ'
+  label_create_work_plan: 'Создать план работ'
+  label_work_category: 'Категория работ'
+  label_task: 'Задача'
+  label_task_details: 'Детали задачи'
+  label_hours_distribution: 'Распределение часов'
+  label_related_reports: 'Связанные отчеты'
+  label_details: 'Детали'
+  label_hours_summary: 'Сводка по часам'
+  label_hours_by_month: 'Часы по месяцам'
+  label_work_categories: 'Категории работ'
+
+  label_sum: 'Сумма'
+  label_create_report_by_month: 'Создать отчет за месяц'
+  label_no_hours_distribution: 'Нет распределения часов'
+  label_no_related_reports: 'Нет связанных отчетов'
+  label_work_plan_settings: 'Настройки планов работ'
+  label_contract_hours_field: 'Поле для часов по контракту'
+
+  # Статусы плана работ
+  work_plan_status_черновик: 'Черновик'
+  work_plan_status_утвержден: 'Утвержден'
+  work_plan_status_закрыт: 'Закрыт'
+
+  # Поля
+
+  field_year: 'Год'
+  field_status: 'Статус'
+  field_total_planned_hours: 'Запланированные часы'
+  field_contract_hours: 'Часы по контракту'
+  field_hours_difference: 'Разница часов'
+  field_created_on: 'Создано'
+  field_updated_on: 'Обновлено'
+  field_notes: 'Примечания'
+  field_plan_work: 'План работ'
+  field_planned_hours: 'Запланированные часы'
+  field_tasks_count: 'Количество задач'
+  field_subject: 'Тема'
+  field_total_hours: 'Общие часы'
+  field_accounting_month: 'Месяц учета'
+  field_report_inclusion_month: 'Месяц включения в отчет'
+  field_completion: 'Выполнение'
+  field_month: 'Месяц'
+  field_hours: 'Часы'
+  field_result: 'Ожидаемый результат'
+
+  # Кнопки
+  button_back_to_plan: 'Вернуться к плану'
+  button_back_to_category: 'Вернуться к категории'
+
+  button_close: 'Закрыть'
+  button_add_task: 'Добавить задачу'
+  button_create_plan: 'Создать план'
+  button_create_report: 'Создать отчет'
+  button_distribute_evenly: 'Распределить равномерно'
+  button_reset_hours: 'Сбросить часы'
+
+  # Сообщения
+  notice_successful_create: 'Успешно создано'
+  notice_successful_update: 'Успешно обновлено'
+
+  notice_work_plan_approved: 'План работ утвержден'
+  notice_work_plan_closed: 'План работ закрыт'
+  notice_hours_distributed: 'Часы распределены'
+  notice_report_created_from_plan: 'Отчет создан на основе плана'
+
+  # Сообщения об ошибках
+  error_version_already_has_plan: 'Для данной версии уже существует план работ'
+  error_unable_delete_work_plan: 'Невозможно удалить план работ'
+  error_work_plan_approval_failed: 'Не удалось утвердить план работ'
+  error_work_plan_closing_failed: 'Не удалось закрыть план работ'
+  error_invalid_month_year: 'Неверный месяц или год'
+  error_report_creation_failed: 'Не удалось создать отчет'
+  error_category_already_exists: 'Категория уже существует в плане'
+  error_unable_delete_category: 'Невозможно удалить категорию'
+  error_issue_already_exists_in_category: 'Задача уже существует в этой категории'
+  error_unable_delete_task: 'Невозможно удалить задачу'
+  error_no_hours_specified: 'Не указаны часы для распределения'
+  error_month_already_exists: 'Месяц уже существует в распределении'
+  error_task_already_linked: 'Задача уже связана с отчетом'
+
+  # Тексты подтверждений
+  text_confirm_close_work_plan: 'Вы действительно хотите закрыть этот план работ? После закрытия план нельзя будет редактировать.'
+  text_confirm_create_report: 'Вы действительно хотите создать отчет за %{month}?'
+
+  # Подсказки и информация
+  text_contract_hours_field_info: 'Выберите кастомное поле, которое содержит информацию о часах по контракту для версий'

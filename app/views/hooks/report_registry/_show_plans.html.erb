@@ -1,0 +1,139 @@
+<%# Добавление кнопки для создания отчета из плана в app/views/registry_reports/_form.html.erb %>
+
+<% # Добавить перед блоком </div> в конце файла %>
+<% if @report.persisted? %>
+  <div class="box">
+    <h3><%= l(:label_related_work_plans) %></h3>
+
+    <% if @report.related_work_plans.any? %>
+      <div class="autoscroll">
+        <table class="list">
+          <thead>
+          <tr>
+            <th><%= l(:field_name) %></th>
+            <th><%= l(:field_version) %></th>
+            <th><%= l(:field_year) %></th>
+            <th><%= l(:field_status) %></th>
+            <th><%= l(:field_tasks_in_report) %></th>
+            <th class="buttons"></th>
+          </tr>
+          </thead>
+          <tbody>
+          <% @report.related_work_plans.includes(:version).each do |work_plan| %>
+            <tr>
+              <td><%= link_to work_plan.name, project_work_plan_path(@project, work_plan) %></td>
+              <td><%= link_to_version work_plan.version %></td>
+              <td><%= work_plan.year %></td>
+              <td class="status <%= work_plan.status %>"><%= l(:"work_plan_status_#{work_plan.status}") %></td>
+              <td><%= @report.work_plan_tasks.where(work_plan_category_id: work_plan.work_plan_category_ids).count %></td>
+              <td class="buttons"></td>
+            </tr>
+          <% end %>
+          </tbody>
+        </table>
+      </div>
+    <% else %>
+      <p class="nodata"><%= l(:label_no_related_work_plans) %></p>
+    <% end %>
+  </div>
+<% end %>
+
+<%# Добавление кнопки для добавления задач из плана в app/views/registry_reports/_issues_table.html.erb %>
+
+<% # Добавить после кнопки "Добавить задачи" в .issues-table-header %>
+<% if @project && @report&.persisted? %>
+  <%= link_to l(:button_add_tasks_from_plan),
+              plan_tasks_project_registry_report_path(@project, @report),
+              class: 'button icon icon-add',
+              title: l(:title_add_tasks_from_plan) %>
+<% end %>
+
+<%# Модификация представления _issue для отображения информации о плане в app/views/report_issues/_issues_list.html.erb %>
+
+<% # Добавить новую колонку в заголовок таблицы после статуса %>
+<th><%= l(:field_work_plan) %></th>
+
+<% # Добавить содержимое колонки в строку задачи после статуса %>
+<td class="work-plan">
+  <% if issue_report && (task = WorkPlanTask.joins(work_plan_category: :work_plan)
+                                            .where(issue_id: issue.id)
+                                            .first) %>
+    <%= link_to task.work_plan_category.work_plan.name,
+                project_work_plan_path(issue.project, task.work_plan_category.work_plan) %>
+  <% else %>
+    -
+  <% end %>
+</td>
+
+<%# Добавление вкладки с планами в представление проекта app/views/projects/show.html.erb %>
+
+<% # Добавить перед закрывающим тегом </div> с классом tabs %>
+<% if @project.module_enabled?(:report_registry) && User.current.allowed_to?(:view_work_plans, @project) %>
+  <%= call_hook(:view_projects_show_left, :project => @project) %>
+  <div class="tab-content" id="tab-work-plans">
+    <%= render :partial => 'work_plans/project_overview' %>
+  </div>
+<% end %>
+
+<%# Модификация view_hooks/view_layouts_base_html_head/head %>
+
+<% # Добавить в метод view_layouts_base_html_head класса ReportsHookListener %>
+def view_layouts_base_html_head(context = {})
+stylesheet_link_tag('report_registry', plugin: 'report_registry') +
+javascript_include_tag('report_registry', plugin: 'report_registry') +
+javascript_include_tag('report_menu', plugin: 'report_registry') +
+javascript_include_tag('modal_issues_handler', plugin: 'report_registry') +
+stylesheet_link_tag('work_plans', plugin: 'report_registry') +
+javascript_include_tag('work_plans', plugin: 'report_registry')
+end
+
+<%# Добавление перехвата для отображения информации о плане в задаче app/views/hooks/report_registry/_show_plans.html.erb %>
+
+<% # Создать новый файл %>
+<% if @issue && @project && @project.module_enabled?(:report_registry) %>
+  <% work_plan_task = WorkPlanTask.joins(work_plan_category: :work_plan)
+                                  .where(issue_id: @issue.id)
+                                  .includes(work_plan_category: :work_plan)
+                                  .first %>
+  <% if work_plan_task %>
+    <tr class="work-plans-section">
+      <th><h3><%= l(:label_work_plans) %></h3></th>
+      <td>
+        <div class="details">
+          <p>
+            <strong><%= l(:field_work_plan) %>:</strong>
+            <%= link_to work_plan_task.work_plan_category.work_plan.name,
+                        project_work_plan_path(@project, work_plan_task.work_plan_category.work_plan) %>
+          </p>
+          <p>
+            <strong><%= l(:field_category) %>:</strong>
+            <%= link_to work_plan_task.work_plan_category.category_name,
+                        project_work_plan_work_plan_category_path(@project,
+                                                                  work_plan_task.work_plan_category.work_plan,
+                                                                  work_plan_task.work_plan_category) %>
+          </p>
+          <p>
+            <strong><%= l(:field_accounting_month) %>:</strong>
+            <%= l(:'date.month_names')[work_plan_task.accounting_month] if work_plan_task.accounting_month %>
+          </p>
+          <p>
+            <strong><%= l(:field_report_inclusion_month) %>:</strong>
+            <%= l(:'date.month_names')[work_plan_task.report_inclusion_month] if work_plan_task.report_inclusion_month %>
+          </p>
+          <p>
+            <strong><%= l(:field_total_hours) %>:</strong>
+            <%= number_with_precision(work_plan_task.total_hours, precision: 2) %>
+          </p>
+          <p>
+            <strong><%= l(:field_completion) %>:</strong>
+          <div class="progress progress-<%= work_plan_task.completion_percentage < 50 ? 'danger' : (work_plan_task.completion_percentage < 100 ? 'warning' : 'success') %>">
+            <div class="bar" style="width: <%= work_plan_task.completion_percentage %>%;">
+              <%= number_to_percentage(work_plan_task.completion_percentage, precision: 0) %>
+            </div>
+          </div>
+          </p>
+        </div>
+      </td>
+    </tr>
+  <% end %>
+<% end %>

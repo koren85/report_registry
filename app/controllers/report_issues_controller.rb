@@ -416,7 +416,15 @@ class ReportIssuesController < ApplicationController
   end
 
   def find_report
-    @report = Report.find(params[:registry_report_id])
+    report_id = params[:registry_report_id] || params[:report_id]
+
+    if report_id.blank?
+      Rails.logger.error "Report ID is missing in parameters"
+      render_404
+      return
+    end
+
+    @report = Report.find(report_id)
   rescue ActiveRecord::RecordNotFound => e
     Rails.logger.error "Report not found: #{e.message}"
     render_404

@@ -18,6 +18,65 @@ class RegistryReportsController < ApplicationController
   before_action :check_project_permissions, only: [:index, :new, :create, :edit, :update, :destroy, :approve, :show], if: -> { !User.current.admin? && @project.present? }
   before_action :check_search_permissions, only: [:search]
 
+  # Добавить в app/controllers/registry_reports_controller.rb
+
+  def plan_tasks
+    @report = Report.find(params[:id])
+    @project = @report.project
+
+    # Находим планы работ, которые связаны с тем же проектом и версией, что и отчет
+    if @report.version_id.present?
+      @work_plans = WorkPlan.where(version_id: @report.version_id)
+    else
+      @work_plans = WorkPlan.joins(:version)
+                            .where(versions: { project_id: @project.id })
+    end
+
+    respond_to do |format|
+      format.html
+      format.js
+    end
+  end
+
+  def add_plan_tasks
+    @report = Report.find(params[:id])
+    @project = @report.project
+    @work_plan = WorkPlan.find(params[:work_plan_id])
+
+    if params[:task_ids].present?
+      @tasks = @work_plan.work_plan_tasks.where(id: params[:task_ids])
+
+      # Создаем связи между отчетом и задачами плана
+      @tasks.each do |task|
+        # Проверяем, нет ли уже связи
+        unless @report.report_plan_links.exists?(work_plan_task_id: task.id)
+          # Находим распределение часов для текущего месяца
+          month = @report.selected_month || @report.start_date.month
+          distribution = task.work_plan_task_distributions.find_by(month: month)
+
+          # Создаем связь с отчетом
+          @report.report_plan_links.create(
+            work_plan_task: task,
+            reported_hours: distribution ? distribution.hours : nil,
+            status: 'включено'
+          )
+        end
+      end
+
+      # Обновляем время изменения отчета
+      @report.update(updated_by: User.current.id, updated_at: Time.current)
+
+      flash[:notice] = l(:notice_tasks_added_from_plan, count: @tasks.size)
+    else
+      flash[:error] = l(:error_no_tasks_selected)
+    end
+
+    respond_to do |format|
+      format.html { redirect_to edit_project_registry_report_path(@project, @report) }
+      format.js
+    end
+  end
+
   # В ReportRegistryController, добавьте переопределение метода для предотвращения автоматической авторизации
   def authorize(ctrl = params[:controller], action = params[:action], global = false)
     # Если мы в глобальном контексте (без проекта), проверяем глобальные разрешения

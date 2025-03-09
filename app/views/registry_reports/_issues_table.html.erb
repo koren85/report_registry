@@ -19,6 +19,12 @@
                     'data-modal': true,
                     'data-project-id': project&.id %>
       <% end %>
+      <% if @project && @report&.persisted? %>
+        <%= link_to l(:button_add_tasks_from_plan),
+                    plan_tasks_project_registry_report_path(@project, @report),
+                    class: 'button icon icon-add',
+                    title: l(:title_add_tasks_from_plan) %>
+      <% end %>
       <button id="delete-selected-issues"
               class="button icon icon-del"
               style="display: none;"
@@ -37,6 +43,7 @@
         <th><%= l(:field_report_title) %></th> <!-- Новый заголовок -->
         <th><%= l(:field_reported_hours) %></th>
         <th><%= l(:field_status) %></th>
+        <th><%= l(:field_work_plan) %></th>
         <th><%= l(:field_project) %></th>
         <th><%= l(:field_version) %></th>
         <th><%= l(:field_start_date) %></th>

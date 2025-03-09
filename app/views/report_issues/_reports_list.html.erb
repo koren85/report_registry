@@ -5,7 +5,7 @@
       <td class="version"><%= report.version.try(:name) || "-" %></td>
       <td class="name">
         <%= link_to report.name,
-                    project_report_path(report.project, report),
+                    project_registry_report_path(report.project, report),
                     class: 'report-link' %>
       </td>
       <td class="period"><%= report.period %></td>
