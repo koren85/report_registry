@@ -193,16 +193,22 @@ class RegistryReportsController < ApplicationController
 
     # Обновляем аттрибуты
     update_params = report_params_with_unique_issues
-    Rails.logger.info "Permitted params: #{update_params.inspect}"
 
-    # Принудительно устанавливаем нужные атрибуты
+    # Явно обрабатываем пустую строку для version_id
+    if params[:version_id] == ""
+      @report.version_id = nil
+    elsif params[:version_id].present?
+      @report.version_id = params[:version_id]
+    end
+
+    # Устанавливаем остальные атрибуты
     @report.period = params[:period] if params[:period].present?
     @report.start_date = params[:start_date] if params[:start_date].present?
     @report.end_date = params[:end_date] if params[:end_date].present?
-    @report.version_id = params[:version_id] if params[:version_id].present?
 
-    # Затем обновляем остальные атрибуты через mass assignment
+    # Затем обновляем остальные атрибуты через mass assignment, исключая те, что уже установили
     @report.assign_attributes(update_params.except(:period, :start_date, :end_date, :version_id))
+
     @report.updated_by = User.current.id
     @report.updated_at = Time.current
 
@@ -227,7 +233,7 @@ class RegistryReportsController < ApplicationController
       }
       Rails.logger.info "After save values: #{saved_values.inspect}"
 
-      flash[:notice] = l(:report_notice_successful_update)
+      flash[:notice] = l(:notice_successful_update)
       if params[:save_and_continue]
         redirect_to edit_registry_report_path(@report, from_global: params[:from_global])
       else
