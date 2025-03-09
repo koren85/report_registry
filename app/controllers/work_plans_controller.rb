@@ -86,8 +86,6 @@ class WorkPlansController < ApplicationController
     # Если параметр project_id отсутствует, это глобальный доступ
     if params[:project_id].blank?
       @project = @work_plan.version.project
-
-
       # Установка флага глобального контекста
       @global_access = true
     else
@@ -96,6 +94,9 @@ class WorkPlansController < ApplicationController
     end
 
     @categories = @work_plan.work_plan_categories.includes(:work_plan_tasks)
+
+    # Проверяем доступность PlanWork для отображения в представлении
+    @plan_works_available = check_plan_works_available(@work_plan.version)
 
     respond_to do |format|
       format.html
@@ -133,7 +134,11 @@ class WorkPlansController < ApplicationController
     respond_to do |format|
       if @work_plan.save
         # Создаем категории из PlanWorks, если они доступны
-        create_categories_from_plan_works if plan_works_available? && params[:create_from_plan_works]
+        if params[:create_from_plan_works] && plan_works_available?
+          create_categories_from_plan_works
+          # Сохраняем обновленный план работ после добавления категорий
+          @work_plan.reload
+        end
 
         format.html {
           flash[:notice] = l(:notice_successful_create)
@@ -141,6 +146,10 @@ class WorkPlansController < ApplicationController
         }
         format.api { render action: 'show', status: :created, location: work_plan_url(@work_plan) }
       else
+        # В случае ошибки при создании плана нужно повторно получить версию
+        if params[:version_id].present?
+          @version = Version.find(params[:version_id])
+        end
         format.html { render action: 'new' }
         format.api { render_validation_errors(@work_plan) }
       end
@@ -157,7 +166,17 @@ class WorkPlansController < ApplicationController
     respond_to do |format|
       @work_plan.updated_by = User.current.id
 
+      # Проверяем, нужно ли создать категории из плана работ
+      create_from_plan = params[:create_from_plan_works].present?
+
       if @work_plan.update(work_plan_params)
+        # Если указан флаг создания категорий из плана работ
+        if create_from_plan && plan_works_available?
+          create_categories_from_plan_works
+          # Сохраняем обновленный план работ после добавления категорий
+          @work_plan.reload
+        end
+
         format.html {
           flash[:notice] = l(:notice_successful_update)
           redirect_to project_work_plan_path(@project, @work_plan)
@@ -248,8 +267,133 @@ class WorkPlansController < ApplicationController
     end
   end
 
+  # Отдельный метод для создания категорий из плана работ
+  # def create_categories
+  #   @work_plan.updated_by = User.current.id
+  #   @work_plan.touch # Обновляем время последнего изменения
+  #
+  #   # Проверяем возможность создания категорий
+  #   if check_plan_works_available(@work_plan.version)
+  #     # Создаем категории из плана работ
+  #     create_categories_from_plan_works
+  #     flash[:notice] = l(:notice_categories_created_successfully)
+  #   else
+  #     flash[:error] = l(:error_no_plan_works_found)
+  #   end
+  #
+  #   redirect_to project_work_plan_path(@project, @work_plan)
+  # end
+
+  # Создаем категории на основе PlanWork из плагина westaco_versions
+  def create_categories
+    # Находим план работ (это необходимо, если метод вызывается напрямую)
+    @work_plan = WorkPlan.find(params[:id]) unless @work_plan
+    @project = @work_plan.version.project unless @project
+
+    # Обновляем время изменения
+    @work_plan.updated_by = User.current.id
+    @work_plan.touch # Обновляем время последнего изменения
+
+    # Проверяем возможность создания категорий
+    if check_plan_works_available(@work_plan.version)
+      # Создаем категории из плана работ
+      categories_count = create_categories_from_plan_works
+
+      if categories_count > 0
+        flash[:notice] = l(:notice_categories_created_successfully, count: categories_count)
+      else
+        flash[:warning] = l(:warning_no_new_categories_created)
+      end
+    else
+      flash[:error] = l(:error_no_plan_works_found)
+    end
+
+    redirect_to project_work_plan_path(@project, @work_plan)
+  rescue => e
+    # Обработка ошибок
+    Rails.logger.error "Error in create_categories: #{e.message}\n#{e.backtrace.join("\n")}"
+    flash[:error] = l(:error_creating_categories)
+
+    # Безопасное перенаправление
+    if @project && @work_plan
+      redirect_to project_work_plan_path(@project, @work_plan)
+    elsif @work_plan
+      project = @work_plan.version.project
+      redirect_to project_work_plan_path(project, @work_plan)
+    else
+      redirect_to project_work_plans_path(@project)
+    end
+  end
+
+  # Создаем категории из PlanWork из плагина westaco_versions
+  def create_categories_from_plan_works
+    # Проверяем, что версия установлена
+    version = @work_plan.version
+
+    # Получаем план работ в зависимости от того, как они доступны
+    plan_works = []
+
+    # Если версия имеет метод plan_works
+    if version.respond_to?(:plan_works)
+      plan_works = version.plan_works
+      # Иначе, если класс PlanWork существует, ищем записи по version_id
+    elsif defined?(PlanWork) && PlanWork.table_exists?
+      plan_works = PlanWork.where(version_id: version.id)
+    end
+
+    # Создаем категории из найденных планов работ
+    categories_created = 0
+
+    plan_works.each do |plan_work|
+      # Проверяем, что такой категории еще нет в плане
+      unless @work_plan.work_plan_categories.where(plan_work_id: plan_work.id).exists?
+        category = @work_plan.work_plan_categories.new(
+          plan_work_id: plan_work.id,
+          category_name: plan_work.respond_to?(:name) ? plan_work.name : "Категория #{plan_work.id}",
+          planned_hours: plan_work.respond_to?(:hours) ? plan_work.hours : 0
+        )
+
+        # Сохраняем категорию
+        if category.save
+          categories_created += 1
+        else
+          Rails.logger.error "Failed to create category: #{category.errors.full_messages.join(', ')}"
+        end
+      end
+    end
+
+    # Возвращаем количество созданных категорий
+    return categories_created
+  end
+
   private
 
+  # Проверка доступности PlanWork
+  def check_plan_works_available(version)
+    return false unless version
+
+    # Проверяем наличие класса PlanWork
+    return false unless defined?(PlanWork)
+
+    # Проверяем, что версия отвечает на метод plan_works
+    if version.respond_to?(:plan_works)
+      # Если есть метод plan_works, проверяем что он возвращает не пустой массив
+      plan_works = version.plan_works
+      return plan_works.present?
+    end
+
+    # Если нет метода plan_works, проверяем наличие записей PlanWork через запрос к БД
+    if PlanWork.table_exists?
+      return PlanWork.where(version_id: version.id).exists?
+    end
+
+    # Если ничего не подошло, возвращаем false
+    return false
+  rescue => e
+    # В случае любых ошибок, логируем их и возвращаем false
+    Rails.logger.error "Error checking plan works: #{e.message}"
+    return false
+  end
   def find_work_plan
     @work_plan = WorkPlan.find(params[:id])
     @version = @work_plan.version
@@ -300,19 +444,15 @@ class WorkPlansController < ApplicationController
 
   # Проверяем доступность PlanWork из плагина westaco_versions
   def plan_works_available?
-    defined?(PlanWork) && @version.respond_to?(:plan_works)
+    version = @version || (@work_plan&.version if @work_plan)
+    return false unless version
+
+    # Проверяем наличие класса PlanWork
+    defined?(PlanWork) &&
+      # Проверяем, что версия отвечает на метод plan_works или у нее есть данные в PlanWork
+      (version.respond_to?(:plan_works) ||
+        (PlanWork.table_exists? && PlanWork.where(version_id: version.id).exists?))
   end
 
-  # Создаем категории на основе PlanWork из плагина westaco_versions
-  def create_categories_from_plan_works
-    return unless plan_works_available? && @version.respond_to?(:plan_works)
 
-    @version.plan_works.each do |plan_work|
-      @work_plan.work_plan_categories.build(
-        plan_work_id: plan_work.id,
-        category_name: plan_work.name,
-        planned_hours: 0
-      )
-    end
-  end
 end

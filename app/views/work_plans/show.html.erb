@@ -143,8 +143,9 @@
 
     <% if @work_plan.editable? %>
       <div class="contextual">
-        <%= link_to l(:button_add), new_project_work_plan_work_plan_category_path(@project, @work_plan),
+        <%= link_to l(:label_add_category_manually), new_project_work_plan_work_plan_category_path(@project, @work_plan),
                     class: 'icon icon-add',
+                    title: l(:help_add_category),
                     data: { remote: true } %>
       </div>
     <% end %>
@@ -190,10 +191,30 @@
             </tr>
           <% end %>
           </tbody>
+          <tfoot>
+          <tr>
+            <td colspan="2"><strong><%= l(:label_sum) %></strong></td>
+            <td class="hours"><strong><%= number_with_precision(@work_plan.total_planned_hours, precision: 2) %></strong></td>
+            <td colspan="2"></td>
+          </tr>
+          </tfoot>
         </table>
       </div>
     <% else %>
-      <p class="nodata"><%= l(:label_no_data) %></p>
+      <% if @work_plan.status == 'черновик' %>
+        <div class="warning-info">
+          <p><%= l(:warning_no_categories) %></p>
+          <% if @plan_works_available %>
+            <%= form_tag create_categories_project_work_plan_path(@project, @work_plan), method: :post do %>
+              <%= submit_tag l(:button_add_categories_from_plan), class: 'button-positive' %>
+            <% end %>
+          <% else %>
+            <p><%= l(:warning_no_plan_works_found) %></p>
+          <% end %>
+        </div>
+      <% else %>
+        <p class="nodata"><%= l(:label_no_data) %></p>
+      <% end %>
     <% end %>
   </div>
 </div>

@@ -1,0 +1,27 @@
+<%# app/views/work_plan_categories/create.js.erb %>
+<% if @category.errors.empty? %>
+// Закрываем модальное окно
+$("#modal-window").hide();
+
+// Показываем уведомление об успешном создании
+var notice = $('<div class="flash notice"></div>').text('<%= j l(:notice_successful_create) %>');
+$('#content').prepend(notice);
+
+// Автоматически скрываем уведомление через 3 секунды
+setTimeout(function() {
+    notice.fadeOut('slow', function() { $(this).remove(); });
+}, 3000);
+
+// Перезагружаем страницу, чтобы отобразить новую категорию
+window.location.reload();
+<% else %>
+// Показываем ошибки в модальном окне
+$("#modal-window").html("<%= j render(partial: 'form', locals: { remote: true }) %>");
+
+// Инициализация Select2 для выпадающего списка, если он доступен
+if ($.fn.select2) {
+    $('#modal-window .select2').select2({
+        dropdownParent: $('#modal-window')
+    });
+}
+<% end %>

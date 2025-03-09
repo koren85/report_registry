@@ -4,6 +4,7 @@ class WorkPlanCategoriesController < ApplicationController
   before_action :find_work_plan
   before_action :find_category, only: [:show, :edit, :update, :destroy]
   before_action :authorize
+  before_action :find_available_plan_works, only: [:new, :edit, :create, :update]
 
   # Показ категории с задачами
   def show
@@ -32,6 +33,10 @@ class WorkPlanCategoriesController < ApplicationController
 
     respond_to do |format|
       if @category.save
+        # Обновляем planned_hours после создания
+        @category.update_planned_hours
+        @category.save
+
         format.html {
           flash[:notice] = l(:notice_successful_create)
           redirect_to project_work_plan_path(@project, @work_plan)
@@ -58,6 +63,10 @@ class WorkPlanCategoriesController < ApplicationController
   def update
     respond_to do |format|
       if @category.update(category_params)
+        # Обновляем planned_hours после обновления
+        @category.update_planned_hours
+        @category.save
+
         format.html {
           flash[:notice] = l(:notice_successful_update)
           redirect_to project_work_plan_path(@project, @work_plan)
@@ -99,6 +108,31 @@ class WorkPlanCategoriesController < ApplicationController
     @category = @work_plan.work_plan_categories.find(params[:id])
   rescue ActiveRecord::RecordNotFound
     render_404
+  end
+
+  def find_available_plan_works
+    @available_plan_works = []
+
+    # Проверяем доступность PlanWork из плагина westaco_versions
+    if defined?(PlanWork)
+      # Получаем уже использованные plan_work_id
+      used_plan_work_ids = @work_plan.work_plan_categories.pluck(:plan_work_id).compact
+
+      if @work_plan.version.respond_to?(:plan_works)
+        # Если метод plan_works определен
+        @available_plan_works = @work_plan.version.plan_works
+                                    .where.not(id: used_plan_work_ids)
+                                    .map { |pw| [pw.name, pw.id] }
+      elsif PlanWork.table_exists?
+        # Иначе ищем PlanWork по ID версии
+        @available_plan_works = PlanWork.where(version_id: @work_plan.version_id)
+                                     .where.not(id: used_plan_work_ids)
+                                     .map { |pw| [pw.name, pw.id] }
+      end
+    end
+  rescue => e
+    logger.error "Error finding plan works: #{e.message}"
+    @available_plan_works = []
   end
 
   def category_params

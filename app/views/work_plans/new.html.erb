@@ -54,25 +54,39 @@
         <%= f.text_area :notes, rows: 5, class: 'wiki-edit' %>
       </div>
 
-      <% if defined?(PlanWork) && @version.respond_to?(:plan_works) && @version.plan_works.any? %>
+      <% plan_works_exist = defined?(PlanWork) &&
+                          (@version.respond_to?(:plan_works) && @version.plan_works.any? ||
+                           PlanWork.where(version_id: @version.id).exists?) %>
+
+      <% if plan_works_exist %>
         <div class="checkbox-field">
           <div class="checkbox-container">
             <%= check_box_tag :create_from_plan_works, '1', true %>
             <%= label_tag :create_from_plan_works, l(:label_create_categories_from_plan_works) %>
           </div>
+          <p class="info">
+            <em><%= l(:text_create_categories_info) %></em>
+          </p>
         </div>
-        <p class="info">
-          <em><%= l(:text_create_categories_info) %></em>
-        </p>
+      <% else %>
+        <div class="warning-info">
+          <p><%= l(:warning_no_plan_works_found) %></p>
+          <p><%= l(:help_add_category) %></p>
+        </div>
       <% end %>
     </div>
 
     <div class="contract-info">
       <h3><%= l(:label_version_info) %></h3>
 
+      <% contract_hours = @version.respond_to?(:contract_hours) ? @version.contract_hours : 0 %>
+
       <div class="form-field">
         <label><%= l(:field_contract_hours) %>:</label>
-        <div class="value"><strong><%= number_with_precision(@version.contract_hours, precision: 2) %></strong></div>
+        <div class="value"><strong><%= number_with_precision(contract_hours, precision: 2) %></strong></div>
+        <% if contract_hours == 0 %>
+          <p class="warning-info"><%= l(:help_contract_hours) %></p>
+        <% end %>
       </div>
 
       <div class="form-field">

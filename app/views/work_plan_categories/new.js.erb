@@ -1,0 +1,11 @@
+<%# app/views/work_plan_categories/new.js.erb %>
+$("#modal-window").html("<%= j render(partial: 'form', locals: { remote: true }) %>");
+$("#modal-window").show();
+$('#category-form input[type=text]:first').focus();
+
+// Инициализация Select2 для выпадающего списка, если он доступен
+if ($.fn.select2) {
+    $('#modal-window .select2').select2({
+        dropdownParent: $('#modal-window')
+    });
+}

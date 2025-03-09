@@ -1,0 +1,44 @@
+<%# app/views/work_plan_categories/_form.html.erb %>
+<%= form_for [@project, @work_plan, @category],
+             html: { class: 'tabular', id: 'category-form' },
+             remote: local_assigns[:remote] do |f| %>
+  <%= error_messages_for @category %>
+
+  <div class="box">
+    <div class="form-field">
+      <%= f.label :category_name, l(:field_name) %>
+      <%= f.text_field :category_name, required: true, size: 60 %>
+    </div>
+
+    <% if @available_plan_works.present? %>
+      <div class="form-field">
+        <%= f.label :plan_work_id, l(:field_plan_work) %>
+        <%= f.select :plan_work_id,
+                     @available_plan_works,
+                     { include_blank: true },
+                     { class: 'select2', style: 'width: 60%' } %>
+        <em class="info"><%= l(:text_select_plan_work_info) %></em>
+      </div>
+    <% end %>
+
+    <div class="buttons">
+      <%= f.submit l(:button_save), class: 'button-positive' %>
+      <% if local_assigns[:remote] %>
+        <%= link_to l(:button_cancel), '#', onclick: 'hideModal(); return false;', class: 'button' %>
+      <% else %>
+        <%= link_to l(:button_cancel), project_work_plan_path(@project, @work_plan), class: 'button' %>
+      <% end %>
+    </div>
+  </div>
+<% end %>
+
+<% content_for :header_tags do %>
+  <script>
+      $(document).ready(function() {
+          // Инициализация Select2 для выпадающего списка, если он доступен
+          if ($.fn.select2) {
+              $('.select2').select2();
+          }
+      });
+  </script>
+<% end %>

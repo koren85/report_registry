@@ -90,7 +90,7 @@ Redmine::Plugin.register :report_registry do
     }, read: true
 
     permission :manage_work_plans, {
-      work_plans: [:new, :create, :edit, :update, :destroy, :approve, :close, :create_report],
+      work_plans: [:new, :create, :edit, :update, :destroy, :approve, :close, :create_report, :create_categories],
       work_plan_categories: [:new, :create, :edit, :update, :destroy],
       work_plan_tasks: [:new, :create, :edit, :update, :destroy, :distribute_hours, :search_issues]
     }
@@ -103,7 +103,7 @@ Redmine::Plugin.register :report_registry do
     }, global: true
 
     permission :manage_work_plans_global, {
-      work_plans: [:new, :create, :edit, :update, :destroy, :approve, :close, :create_report],
+      work_plans: [:new, :create, :edit, :update, :destroy, :approve, :close, :create_report, :create_categories],
       work_plan_categories: [:new, :create, :edit, :update, :destroy],
       work_plan_tasks: [:new, :create, :edit, :update, :destroy, :distribute_hours, :search_issues]
     }, global: true

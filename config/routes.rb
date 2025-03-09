@@ -73,6 +73,8 @@ Rails.application.routes.draw do
         patch 'approve'
         patch 'close'
         post 'create_report'
+        # Новый маршрут для создания категорий из плана работ
+        post 'create_categories'
       end
 
       resources :work_plan_categories, only: [:show, :new, :create, :edit, :update, :destroy] do

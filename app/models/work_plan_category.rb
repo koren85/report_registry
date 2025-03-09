@@ -7,11 +7,27 @@ class WorkPlanCategory < ActiveRecord::Base
   validates :planned_hours, numericality: { greater_than_or_equal_to: 0 }
   validates :plan_work_id, uniqueness: { scope: :work_plan_id, message: :error_category_already_exists }, allow_nil: true
 
-  before_save :update_planned_hours
+  after_save :update_work_plan_hours
+  after_destroy :update_work_plan_hours
 
   # Обновляем сумму запланированных часов на основе задач в категории
   def update_planned_hours
-    self.planned_hours = work_plan_tasks.sum(:total_hours)
+    # Сначала проверяем, есть ли в категории задачи
+    if work_plan_tasks.loaded?
+      # Если задачи уже загружены, используем их для подсчета
+      self.planned_hours = work_plan_tasks.sum(&:total_hours)
+    else
+      # Иначе делаем запрос к базе данных
+      self.planned_hours = work_plan_tasks.sum(:total_hours)
+    end
+
+    # Если план работ связан с PlanWork и у нас нет задач, берем часы из него
+    if plan_work_exists? && work_plan_tasks.count == 0
+      plan_work_hours = plan_work.respond_to?(:hours) ? plan_work.hours : 0
+      self.planned_hours = plan_work_hours if plan_work_hours > 0
+    end
+
+    self.planned_hours
   end
 
   # Получаем связанный объект PlanWork, если он существует
@@ -39,5 +55,15 @@ class WorkPlanCategory < ActiveRecord::Base
     end
 
     result
+  end
+
+  private
+
+  # Обновляем часы в родительском плане
+  def update_work_plan_hours
+    if work_plan
+      # Обновляем общие часы плана
+      work_plan.touch # Вызываем обновление временной метки
+    end
   end
 end
