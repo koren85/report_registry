@@ -1,9 +1,12 @@
-<%= form_with(model: [@project, @report], local: true, id: 'report-form',
-              data: { report_id: @report.id }) do |f| %>
+<%= form_with(url: (@project ? project_registry_reports_path(@project) : registry_reports_path),
+              method: :post,
+              local: true,
+              id: 'report-form',
+              data: { report_id: @report&.id }) do |f| %>
   <div class="box">
     <div class="form-field width-100">
       <%= f.label :name, l(:field_name) %>
-      <%= f.text_field :name, id: 'report_name', required: true, maxlength: 254, style: 'width: 98%;' %>
+      <%= f.text_field :name, id: 'report_name', name: 'name',required: true, maxlength: 254, style: 'width: 98%;' %>
     </div>
   </div>
 
@@ -33,7 +36,7 @@
                                   @versions || [],
                                   :id, :name,
                                   { include_blank: true },
-                                  { class: 'select2', id: 'version-select', style: 'width: 100%;' } %>
+                                  { class: 'select2', id: 'version-select', name: 'version_id', style: 'width: 100%;' } %>
         </p>
       </div>
     </div>
@@ -48,7 +51,7 @@
                    [['Месячный', 'месячный'], ['Квартальный', 'квартальный'],
                     ['Годовой', 'годовой'], ['Прочее', 'прочее']],
                    {},
-                   { id: 'report_period', style: 'width: 200px;' } %>
+                   { id: 'report_period',name: 'period', style: 'width: 200px;' } %>
     </p>
 
     <!-- Контейнер для динамических полей дат -->
@@ -109,14 +112,14 @@
       </div>
     </div>
 
-    <%= f.hidden_field :start_date, id: 'hidden_start_date' %>
-    <%= f.hidden_field :end_date, id: 'hidden_end_date' %>
+    <%= f.hidden_field :start_date, id: 'hidden_start_date', name: 'start_date' %>
+    <%= f.hidden_field :end_date, id: 'hidden_end_date', name: 'end_date' %>
   </div>
 
   <div class="box">
     <p>
       <%= f.label :contract_number, l(:field_contract_number) %>
-      <%= f.text_field :contract_number, id: 'report_contract_number', style: 'width: 200px;' %>
+      <%= f.text_field :contract_number, id: 'report_contract_number', name: 'contract_number', style: 'width: 200px;' %>
     </p>
   </div>
 
@@ -129,6 +132,7 @@
                    { multiple: true,
                      class: 'select2',
                      id: 'issues-select',
+                     name: 'issue_ids[]',
                      style: 'width: 100%;',
                      # data: {
                      #   'pre': (@report.issues || []).map { |i| { id: i.id, text: "#{i.id} - #{i.subject}" } },
@@ -156,7 +160,7 @@
                    data: { disable_with: l(:button_submitting) } %>
 
       <%= link_to l(:button_back_to_list),
-                  (@project ? project_reports_path(@project) : reports_path),
+                  (@project ? project_registry_reports_path(@project) : registry_reports_path),
                   class: 'button' %>
     </p>
   </div>

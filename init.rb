@@ -2,7 +2,7 @@
 require File.expand_path('../app/helpers/reports_helper', __FILE__)
 require File.expand_path('../lib/reports_hook_listener', __FILE__)
 require File.expand_path('../lib/project_patch', __FILE__)
-require File.expand_path('../app/controllers/report_registry_controller', __FILE__)
+require File.expand_path('../app/controllers/registry_reports_controller', __FILE__)
 require File.expand_path('../app/controllers/report_issues_controller', __FILE__)
 require File.expand_path('../lib/report_registry/issue_query_patch', __FILE__)
 

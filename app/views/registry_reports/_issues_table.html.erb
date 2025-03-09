@@ -6,11 +6,11 @@
       <% project = @project || @report&.project %>
       <% if project || @report %>
         <% modal_path = if @report&.persisted?
-                         modal_issues_report_report_issues_path(@report)
+                          modal_issues_registry_report_report_issues_path(@report)
                        elsif @project
-                         modal_issues_project_report_report_issues_path(@project, 0)
+                         modal_issues_project_registry_report_report_issues_path(@project, 0)
                        else
-                         modal_issues_report_report_issues_path(0)
+                         modal_issues_registry_report_report_issues_path(0)
                        end %>
         <%= link_to l(:button_add_issues),
                     modal_path,

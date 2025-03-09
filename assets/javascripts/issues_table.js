@@ -86,8 +86,8 @@ function initializeReportIssues() {
         const token = document.querySelector('meta[name="csrf-token"]').content;
 
         const url = projectIdentifier ?
-            `/projects/${projectIdentifier}/reports/${reportId}/report_issues/remove_issues` :
-            `/reports/${reportId}/report_issues/remove_issues`;
+            `/projects/${projectIdentifier}/registry_reports/${reportId}/report_issues/remove_issues` :
+            `/registry_reports/${reportId}/report_issues/remove_issues`;
 
         $.ajax({
             url: url,

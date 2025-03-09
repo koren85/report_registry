@@ -15,6 +15,7 @@ ru:
       total_hours: 'Общее количество часов'
       contract_number: 'Номер контракта'
 
+  report_notice_successful_create: 'Отчет создан успешно'
   menu_reports: 'Отчет'
   button_new_report: 'Создать отчет'
   button_edit: 'Редактировать'

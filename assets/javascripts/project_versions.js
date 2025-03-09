@@ -5,7 +5,7 @@ $(document).ready(function() {
     function updateVersions(projectId) {
         if (projectId) {
             $.ajax({
-                url: '/reports/load_project_versions',
+                url: '/registry_reports/load_project_versions',
                 data: { project_id: projectId },
                 method: 'GET',
                 dataType: 'json'

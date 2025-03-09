@@ -1,4 +1,4 @@
-class ReportRegistryController < ApplicationController
+class RegistryReportsController < ApplicationController
   helper :sort
   include SortHelper
   helper :queries
@@ -153,11 +153,11 @@ class ReportRegistryController < ApplicationController
     @report.updated_at = Time.current
 
     if @report.save
-      flash[:notice] = l(:notice_successful_create)
+      flash[:notice] = l(:report_notice_successful_create)
       if params[:save_and_continue]
-        redirect_to edit_report_path(@report)
+        redirect_to edit_registry_report_path(@report)
       else
-        redirect_to(@project ? project_reports_path(@project) : reports_path)
+        redirect_to(@project ? project_registry_reports_path(@project) : reports_path)
       end
     else
       load_versions
@@ -183,7 +183,7 @@ class ReportRegistryController < ApplicationController
       if params[:save_and_continue]
         redirect_to edit_report_path(@report, from_global: params[:from_global])
       else
-        redirect_to(params[:from_global] == 'true' ? reports_path : project_reports_path(@report.project))
+        redirect_to(params[:from_global] == 'true' ? reports_path : project_registry_reports_path(@report.project))
       end
     else
       @from_global = params[:from_global]
@@ -302,11 +302,9 @@ class ReportRegistryController < ApplicationController
   end
 
   def report_params
-    params.require(:report).permit(
-      :name, :period, :start_date, :end_date, :status,
-      :total_hours, :contract_number, :project_id,
-      :version_id, issue_ids: []
-    )
+    params.permit(:name, :period, :start_date, :end_date, :status,
+                  :total_hours, :contract_number, :project_id,
+                  :version_id, issue_ids: [])
   end
 
   def load_versions

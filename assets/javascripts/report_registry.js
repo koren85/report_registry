@@ -61,7 +61,7 @@ $(document).ready(function() {
             if (projectId) {
                 // Загрузка версий
                 $.ajax({
-                    url: `/projects/${projectId}/reports/load_project_versions`,
+                    url: `/projects/${projectId}/registry_reports/load_project_versions`,
                     type: 'GET',
                     dataType: 'json',
                     success: function(versions) {
